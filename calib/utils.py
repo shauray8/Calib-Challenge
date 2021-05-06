@@ -2,24 +2,26 @@ import matplotlib.pyplot as plt
 import cv2
 import os
 
-# capturing videos from the file
-stuff = 2
-cap = cv2.VideoCapture(f'../labeled/{stuff}.hevc')
 
-# path to the dataset and stuff
-path = f"../labeled/{stuff}.txt"
-line = []
-
-# opening and reading the yaw pitch files
-with open(path, "r") as files:
-    data = files.read()
-    data = data.split("\n")
-    for f in data:
-        line.append(f)
+def openit(path, line):
+    # opening and reading the yaw pitch files
+    with open(path, "r") as files:
+        data = files.read()
+        data = data.split("\n")
+        for f in data:
+            line.append(f)
 
 # shows the data set 
 def show():
     i = 0
+    stuff = 2
+    cap = cv2.VideoCapture(f'../labeled/{stuff}.hevc')
+
+    # path to the dataset and stuff
+    path = f"../labeled/{stuff}.txt"
+    line = []
+    openit(path, line)
+
     while(True):
 
         # Capture frame-by-frame
@@ -27,7 +29,7 @@ def show():
 
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(frame, 
-                    line[i], 
+                    f"GT - {line[i]}", 
                     (50, 50), 
                      font, 1, 
                     (0, 255, 255), 
@@ -49,4 +51,12 @@ def show():
     cap.release()
     cv2.destroyAllWindows()
 
-show()
+
+
+
+if __name__ == "__main__":
+    show()
+
+
+
+
