@@ -20,7 +20,7 @@ commaai's repo includes an eval script that will give an error score (lower is b
 [Unlabeled test dataset](./unlabeled)</br>
 [Eval script](eval.py)</br>
 [My Model and training script](./calib)</br>
-[Setup]("setup.py") (adding soon dont worry) </br>
+[Setup]("setup.py") </br>
 
 ## example of how opensource is changing the world !! 
 [comma ai](https://github.com/commaai)
