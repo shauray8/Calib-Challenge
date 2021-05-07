@@ -14,7 +14,7 @@ def openit(path, line):
 # shows the data set 
 def show():
     i = 0
-    stuff = 2
+    stuff = 3
     cap = cv2.VideoCapture(f'../labeled/{stuff}.hevc')
 
     # path to the dataset and stuff
