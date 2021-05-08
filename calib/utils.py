@@ -11,15 +11,15 @@ def openit(path, line):
         for f in data:
             line.append(f)
 
+line = []
 # shows the data set 
 def show():
     i = 0
-    stuff = 3
+    stuff = 4
     cap = cv2.VideoCapture(f'../labeled/{stuff}.hevc')
 
     # path to the dataset and stuff
     path = f"../labeled/{stuff}.txt"
-    line = []
     openit(path, line)
 
     while(True):
@@ -44,6 +44,7 @@ def show():
         #print(line[i])
 
         i += 1
+        
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
@@ -56,7 +57,3 @@ def show():
 
 if __name__ == "__main__":
     show()
-
-
-
-
