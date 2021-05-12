@@ -1,8 +1,6 @@
-[![Build Status](https://travis-ci.com/shauray8/Calib-Challange.svg?branch=master)](https://travis-ci.com/shauray8/Calib-Challange)
-
 ![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)
 ![python3](https://img.shields.io/badge/python-3.6-blue.svg)
-
+[![Build Status](https://travis-ci.com/shauray8/Calib-Challange.svg?branch=master)](https://travis-ci.com/shauray8/Calib-Challange)
 </br>
 # Commaai's Calib-Challange
 ## Goal
