@@ -1,13 +1,13 @@
 language: python
 
-jobs:
-  steps:
-    name: Calib Challange
-    runs-on: ubuntu
-
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
+  #jobs:
+  #  steps:
+  #    name: Calib Challange
+  #    runs-on: ubuntu
+  #
+  #    steps:
+  #    - name: Checkout Code
+  #      uses: actions/checkout@v2
 
         #  linter:
         #    name: Indentation Linter
