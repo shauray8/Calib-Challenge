@@ -1,5 +1,9 @@
 [![Build Status](https://travis-ci.com/shauray8/Calib-Challange.svg?branch=master)](https://travis-ci.com/shauray8/Calib-Challange)
-</br></br>
+
+![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)
+![python3](https://img.shields.io/badge/python-3.6-blue.svg)
+
+</br>
 # Commaai's Calib-Challange
 ## Goal
 the goal is to predict the direction of travel (in camera frame) from provided dashcam video. (yaw and pitch, fortunately, no roll)
