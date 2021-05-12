@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import numoy as np
+import numpy as np
 
 
 class MaskFlow(nn.Module):

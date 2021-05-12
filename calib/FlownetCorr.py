@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 import numpy as np
-
+import torch.nn.functional as F
+import tensorflow as tf
 
 class FlowNet(nn.Module):
     def __init__(self, bv=True):
@@ -105,6 +106,26 @@ class FlowNet(nn.Module):
         return [param for name, param in self.named_parameters() if 'bias' in name]
 
 
+    def conv(self, batchnorm, in_channels, out_channels, kernel=3, stride=1):
+        if batchnorm:
+            return nn.Sequential(
+                        nn.Conv2d(in_channels, out_channels, kernel_size=kernel, stride=stride, padding=(kernel-1)//2, bias=False),
+                        nn.BatchNorm2d(out_channels),
+                        nn.LeakyReLU(0.1,inplace=True)
+                    )
+        else:
+            return nn.Sequential(
+                    nn.Conv2d(in_channels, out_channels, kernel_size=kernel, stride=stride, padding=(kernel-1)//2, bias=True),
+                    nn.LeakyReLU(.1, inplace=True)
+                    )
+
+    def flow(self, in_channels):
+        return nn.Conv2d(in_channels,2,kernel_size=3,stride=1,padding=1,bias=False)
+
+
+    def deconv()
+
+
 
 def flownetc(data=None):
     """FlowNetS model architecture from the
@@ -113,6 +134,18 @@ def flownetc(data=None):
 
     """
     model = FlowNetC(batchNorm=False)
+    if data is not None:
+        model.load_state_dict(data['state_dict'])
+    return model
+
+
+def flownetc_bn(data=None):
+    """FlowNetS model architecture from the
+
+    Learning Optical Flow with Convolutional Networks" paper (https://arxiv.org/abs/1504.06852)
+
+    """
+    model = FlowNetC(batchNorm=True)
     if data is not None:
         model.load_state_dict(data['state_dict'])
     return model
