@@ -1,64 +1,60 @@
-language: python3
-
-name: Calib Challange
-
-on: [push, pull_request]
+language: python
 
 jobs:
   lines:
     name: Calib Challange
-    runs-on: ubuntu-latest
+    runs-on: ubuntu
 
     steps:
     - name: Checkout Code
       uses: actions/checkout@v2
 
-  linter:
-    name: Indentation Linter
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        # pip install -r requirements.txt
-  testcpu:
-    name: CPU Tests
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-    - name: Install Dependencies
-      run: pip install -e '.[testing]'
-    - name: Run Pytest
-      run: python -m pytest -s -v
-
-  testgpu:
-    name: GPU Tests
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-    - name: Install Dependencies
-      run: pip install -e '.[gpu,testing]'
-    - name: Run Pytest
-      run: GPU=1 python -m pytest -s -v
-
-
+        #  linter:
+        #    name: Indentation Linter
+        #    runs-on: ubuntu
+        #
+        #    steps:
+        #    - name: Checkout Code
+        #      uses: actions/checkout@v2
+        #    - name: Set up Python 3.8
+        #      uses: actions/setup-python@v2
+        #      with:
+        #        python-version: 3.8
+        #    - name: Install dependencies
+        #      run: |
+        #        python -m pip install --upgrade pip
+        #        # pip install -r requirements.txt
+        #  testcpu:
+        #    name: CPU Tests
+        #    runs-on: ubuntu
+        #
+        #    steps:
+        #    - name: Checkout Code
+        #      uses: actions/checkout@v2
+        #    - name: Set up Python 3.8
+        #      uses: actions/setup-python@v2
+        #      with:
+        #        python-version: 3.8
+        #    - name: Install Dependencies
+        #      run: pip install -e '.[testing]'
+        #    - name: Run Pytest
+        #      run: python -m pytest -s -v
+        #
+        #  testgpu:
+        #    name: GPU Tests
+        #    runs-on: ubuntu
+        #
+        #    steps:
+        #    - name: Checkout Code
+        #      uses: actions/checkout@v2
+        #    - name: Set up Python 3.8
+        #      uses: actions/setup-python@v2
+        #      with:
+        #        python-version: 3.8
+        #    - name: Install Dependencies
+        #      run: pip install -e '.[gpu,testing]'
+        #    - name: Run Pytest
+        #      run: GPU=1 python -m pytest -s -v
+        #
+        #
 
