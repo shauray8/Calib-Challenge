@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import torch.nn.functional as F
-import tensorflow as tf
+from correlation_torch import CorrTorch
 
 class FlowNet(nn.Module):
     def __init__(self, bv=True):
