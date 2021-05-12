@@ -12,7 +12,7 @@ jobs:
       uses: actions/checkout@v2
 
   linter:
-    name: Indentation  Linter
+    name: Indentation Linter
     runs-on: ubuntu-latest
 
     steps:
