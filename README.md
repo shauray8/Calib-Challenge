@@ -15,12 +15,26 @@ They will evaluate our mean squared error against our ground truth labels. Error
 </br></br>
 commaai's repo includes an eval script that will give an error score (lower is better). You can use it to test your solutions against the labeled examples. They will use this script to evaluate your solution.
 
+## Architecture 
+I am thinking of using some kind of optical flow model and rather than doing some kind of image stabilization or something I'll make it yield Yaw and Pitch of the moving vehicle.
+</br></br>
+Adding details about the architecture soon!
+
 ## Navigation
 [Labelled dataset](./labeled)</br>
 [Unlabeled test dataset](./unlabeled)</br>
 [Eval script](eval.py)</br>
 [My Model and training script](./calib)</br>
 [Setup](setup.py) </br>
+
+## ToDo
+- [x] Visualizing the data
+- [ ] Writing the Architecture
+- [ ] Training the model
+- [ ] SLAM
+- [ ] Write utility functions
+- [ ] Build and Deploy
+- [ ] Update README
 
 ## example of how opensource is changing the world !! 
 [comma ai](https://github.com/commaai)
