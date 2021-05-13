@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import torch.nn.functional as F
-from correlation_torch import CorrTorch
+from corr import CorrBlock
 
 class FlowNet(nn.Module):
     def __init__(self, bv=True):
@@ -123,6 +123,10 @@ class FlowNet(nn.Module):
         return nn.Conv2d(in_channels,2,kernel_size=3,stride=1,padding=1,bias=False)
 
 
+    def correlate(fmap1, fmap2):
+        return CorrBlock(fmap1, fmap2)
+
+    
     def deconv()
 
 
