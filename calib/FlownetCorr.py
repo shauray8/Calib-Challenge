@@ -126,9 +126,17 @@ class FlowNet(nn.Module):
     def correlate(fmap1, fmap2):
         return CorrBlock(fmap1, fmap2)
 
-    
-    def deconv()
+    def deconv(in_channels, out_channels):
+        return nn.Sequential(
+            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.LeakyReLU(0.1,inplace=True)
+        )
 
+    def crop_like(input, target):
+        if input.size()[2:] == target.size()[2:]:
+            return input
+        else:
+            return [;, ;, ;target.size(2), :target.size(3)]
 
 
 def flownetc(data=None):
