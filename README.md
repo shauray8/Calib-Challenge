@@ -33,7 +33,9 @@ Adding details about the architecture soon!
 
 ## ToDo
 - [x] Visualizing the data
-- [ ] Writing the Architecture
+- [ ] MaskFlow net
+- [x] FlowNet corr
+- [ ] Gma
 - [ ] Training the model
 - [ ] SLAM
 - [ ] Write utility functions
