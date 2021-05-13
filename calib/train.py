@@ -6,7 +6,15 @@ import cv2
 import PIL
 import torchvision 
 
-from model import *
+from FlownetCorr import *
+import FlownetCorr
 
-net = network()
-print(net)
+def callable():
+    kwargs = sorted(name for name in FlownetCorr.__dict__
+        if name.islower() and not name.startswith("__")
+        and callable(FlownetCorr.__dict__[name]))
+    return kwargs
+
+
+
+

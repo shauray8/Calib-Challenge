@@ -136,7 +136,7 @@ class FlowNet(nn.Module):
         if input.size()[2:] == target.size()[2:]:
             return input
         else:
-            return [;, ;, ;target.size(2), :target.size(3)]
+            return input[:, :, :target.size(2), :target.size(3)]
 
 
 def flownetc(data=None):
