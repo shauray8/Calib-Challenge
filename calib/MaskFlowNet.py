@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+## ---------------- i dont think i'm gonna code this ---------------- ##
 
 class MaskFlow(nn.Module):
     def __init__(self):
@@ -10,3 +11,7 @@ class MaskFlow(nn.Module):
 
     def forward(self, x):
         pass
+
+## ---------------- https://github.com/cattaneod/MaskFlownet-Pytorch ---------------- ##
+
+## anyways I will explain the architecture in the README ##
