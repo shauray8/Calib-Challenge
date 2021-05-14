@@ -50,6 +50,16 @@ class FlowNet(nn.Module):
                 constant_(m.bias, 0)
 
 
+        self.lastblock = [nn.Flatten(),
+            nn.Linear(136*320, 1000),
+            nn.Linear(1000, 640),
+            nn.Linear(640, 320),
+            nn.Linear(320, 160),
+            nn.linear(160, 70),
+            ]
+
+
+
     def forward(self, x):
         x1 = x[:,:3]
         x2 = x[:,3:]
@@ -92,7 +102,9 @@ class FlowNet(nn.Module):
         out_deconv2 = crop_like(self.deconv2(concat3), out_conv2a)
 
         concat2 = torch.cat((out_conv2a,out_deconv2,flow3_up),1)
-        flow2 = self.predict_flow2(concat2)
+        flow2 = self.flow2(concat2)
+
+        return self.block(flow2)
 
         if self.training:
             return flow2,flow3,flow4,flow5,flow6
