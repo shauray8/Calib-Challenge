@@ -38,8 +38,6 @@ runs-on: ubuntu
                 python-version: 3.8
             - name: Install Dependencies
               run: pip install -e '.[testing]'
-            - name: Run Pytest
-              run: python -m pytest -s -v
         
           testgpu:
             name: GPU Tests
@@ -54,8 +52,6 @@ runs-on: ubuntu
                 python-version: 3.8
             - name: Install Dependencies
               run: pip install -e '.[gpu,testing]'
-            - name: Run Pytest
-              run: GPU=1 python -m pytest -s -v
         
         
 
