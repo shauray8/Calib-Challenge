@@ -6,7 +6,7 @@
 ## Goal
 the goal is to predict the direction of travel (in camera frame) from provided dashcam video. (yaw and pitch, fortunately, no roll)
 </br></br>
-Commaai's repo provides 10 videos. Every video is 1min long and 20 fps.</br>
+[Commaai's](https://github.com/commaai/calib_challange) repo provides 10 videos. Every video is 1min long and 20 fps.</br>
 5 videos are labelled with a 2D array describing the direction of travel at every frame of the video with a pitch and yaw angle in radians.</br>
 5 videos are unlabeled. It is your task to generate the labels for them.</br>
 The example labels are generated using a Neural Network, and the labels were confirmed with a SLAM algorithm.</br>
