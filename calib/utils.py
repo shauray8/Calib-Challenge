@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import cv2
 import os
-
+import torch
 
 def openit(path, line):
     # opening and reading the yaw pitch files
@@ -12,7 +12,7 @@ def openit(path, line):
             line.append(f)
 
 line = []
-# shows the data set 
+## ---------------- Visualizing Stuff Here ---------------- ##
 def show():
     i = 0
     stuff = 4
@@ -55,6 +55,8 @@ def show():
 
 ## ---------------- For MaskFlowCorr ---------------- ##
 
+
+## ---------------- For Global Motion Aggregation ---------------- ##
 
 if __name__ == "__main__":
     show()

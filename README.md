@@ -23,12 +23,15 @@ commaai's repo includes an eval script that will give an error score (lower is b
 I am thinking of using some kind of optical flow model and rather than doing some kind of image stabilization or something I'll make it yield Yaw and Pitch of the moving vehicle.
 </br></br>
 Adding details about the architecture soon!
+### 1. FlowNetCorr
+### 2. Global Motion Aggregation
+### 3. MarkFlowNet and FlowNet2.0 --> no implimentation 
 
 ## Navigation
 [Labelled dataset](./labeled)</br>
 [Unlabeled test dataset](./unlabeled)</br>
 [Eval script](eval.py)</br>
-[My Model and training script](./calib)</br>
+[Models and training script](./calib)</br>
 [Setup](setup.py) </br>
 
 ## ToDo
