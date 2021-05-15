@@ -1,3 +1,7 @@
+FlowNetCorr -->
 The augmentations we use include geometric transformations: translation, rotation and 
 scaling, as well as additive Gaus-sian noise and changes in brightness, contrast, 
 gamma, and color.
+
+Global Motion Aggregation -->
+

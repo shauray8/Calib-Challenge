@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 import os
+import BullShit
 
 class network(nn.Module):
     def __init__(self):
@@ -31,4 +32,4 @@ class network(nn.Module):
     def forward(self, x):
         return self.layers(x)
 
-
+##  --------------- This is bulshit I dont know why I thought this would work --------------- ##
