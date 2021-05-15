@@ -96,4 +96,63 @@ def main():
         ',epochSize'+str(args.epoch_size) if args.epoch_size > 0 else '',
         args.batch_size,
         args.lr)
+        
+    if not args.o_data:
+        timestamp = datetime.datatime.now().strftime("%m-%d-%H:%M")
+        save_path = os.path.join(args.dataset, save_path)
+    save_path = os.path.join(args.dataset, save_path)
+    print(f"=> will save everything to {save_path}")
+    if not os,path.exist(save_path):
+        os.makedirs(save_path)
 
+    train_writer = SummaryWritter(os.path.join(save_path, "train"))
+    test_writer = SummaryWritter(os.path.join(save_path, "test"))
+    output_writers = []
+    for i in range(3):
+        output_writers.append(SummaryWriter(os.path.join(save_path, 'test', str(i))))
+
+    ## --------------------- loading the data --------------------- ##
+    input_transform = transform.Compose([
+        flow_transforms.ArrayToTensor(),
+        transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
+        transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
+        ])
+
+    target_transform = transform.Compose([
+        flow_transforms.ArrayToTensor(),
+        transformes.Normalize(mean=[0,0], std=[args.div_flow, args.div_flow]),
+        ])
+
+    co_transform = flow_transforms.Compose([
+            flow_transforms.RandomTranslate(10),
+            flow_transforms.RandomRotate(10,5),
+            flow_transforms.RandomCrop((320,448)),
+            flow_transforms.RandomVerticalFlip(),
+            flow_transforms.RandomHorizontalFlip()
+        ])
+
+    print(f"=> fetching image pairs in {args.data}") 
+    train_set, test_set = datassets.__dict__[args.dataset](
+            args.data,
+            transfoms = input_tranform,
+            target_transform = target_transform,
+            co_transform = co_transform,
+            splt = args.split_file if args.split_file else args.split_value,
+            )
+    print(f"{len(test_set) + len(train_set)} samples found, {len(train_set)} train samples and {len(test_set)} test samples")
+
+
+    train_loader = torch.utils.data.DataLoader(
+            train_set, batch_size = args.batch_size, num_workers=args.workers,
+            pin_memory=True, shuffle=True)
+
+    val_loader = torch.utils.data.DataLoader(
+            test_set, batch_size=args.batch_size, num_workers=args.num_workers,
+            pin_memory=True, shuffle = False)
+
+
+    ## --------------------- MODEL --------------------- ##
+
+
+
+        
