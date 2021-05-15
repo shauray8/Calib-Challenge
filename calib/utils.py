@@ -1,14 +1,15 @@
+from __future__ import division
 import matplotlib.pyplot as plt
 import cv2
 import os
 import torch
 
-from __future__ import division
 import random
 import numpy as np
 import numbers
 import types
 import scipy.ndimage as ndimage
+import argparse
 
 def openit(path, line):
     # opening and reading the yaw pitch files
@@ -20,9 +21,9 @@ def openit(path, line):
 
 line = []
 ## ---------------- Visualizing Stuff Here ---------------- ##
-def show():
+def show(data):
     i = 0
-    stuff = 4
+    stuff = data
     cap = cv2.VideoCapture(f'../labeled/{stuff}.hevc')
 
     # path to the dataset and stuff
@@ -97,7 +98,7 @@ class InputPadder:
         pad_ht = (((self.ht // 8) + 1)* 8 - self.ht) % 8
         pad_wd = (((self.ht // 8) + 1)* 8 - self.wd) % 8
 
-        self._pad = [pad_wd // 2. pad_wd - pad_wd//2, 0, pad_ht]
+        self._pad = [pad_wd // 2, pad_wd - pad_wd//2, 0, pad_ht]
 
     def pad(self, *inputs):
         return [F.pad(x, self._pad, model='replicate') for x in inputs]
@@ -139,4 +140,9 @@ def forward_interpolate(flow):
     return torch.from_numpy(flow).float()
 
 if __name__ == "__main__":
-    show()
+    parser = argparse.ArgumentParser(description='Wanna Watch some random dude drive',
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--data', default=1, type=int, metavar='N',
+                    help='number of video')
+    args = parser.parse_args()
+    show(args.data)

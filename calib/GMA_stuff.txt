@@ -1,3 +1,5 @@
+## --------------- Points from global motion aggregation paper ---------------##
+
 Charbonnier potential and the Lorentzian potential
 Markov Random Fields (MRFs) 
 

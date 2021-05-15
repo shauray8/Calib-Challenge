@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-## ---------------- i dont think i'm gonna code this ---------------- ##
+## ---------------- i dont think i'm gonna code this now ---------------- ##
 
 class MaskFlow(nn.Module):
     def __init__(self):
