@@ -21,6 +21,7 @@ setup(
       'torchvision',
       'pillow',
       "opencv2",
+      "tensorboard".
 
   ],
 )
