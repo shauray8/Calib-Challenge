@@ -152,6 +152,18 @@ def main():
 
 
     ## --------------------- MODEL --------------------- ##
+    
+    if args.pretrained:
+        network_data = torch.load(args.pretrained)
+        args.arch = network_data['arch']
+        print(f"=> creating model {args.arch}")
+    else:
+        network_data = None
+        print(f"=> using pre_trained model {args.arch}")
+
+    ### to be changed
+    model = model.__dict__[args.arch](network_data).to(device)
+
 
 
 
