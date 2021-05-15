@@ -21,7 +21,7 @@ def callable():
         and callable(FlownetCorr.__dict__[name]))
     return kwargs
 
-
+## -------------------- Argument Parser just for simplicity -------------------- ##
 
 parser = argparse.ArgumentParser(description='PyTorch FlowNet Training on several datasets',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -37,7 +37,7 @@ group.add_argument('-s', '--split-file', default=None, type=str,
 group.add_argument('--split-value', default=0.8, type=float,
                    help='test-val split proportion between 0 (only test) and 1 (only train), '
                         'will be overwritten if a split file is set')
-parser.add_argument('--arch', '-a', metavar='ARCH', default='flownets',
+parser.add_argument('--arch', '-a', metavar='ARCH', default='flownetc',
                     choices=model_names,
                     help='model architecture, overwritten if pretrained is specified: ' +
                     ' | '.join(model_names))
@@ -85,7 +85,6 @@ best_EPE = -1
 n_iter = 0
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
 def main():
     global args, best_EPE
     args = parser.parse_args()
@@ -113,22 +112,22 @@ def main():
 
     ## --------------------- loading the data --------------------- ##
     input_transform = transform.Compose([
-        flow_transforms.ArrayToTensor(),
         transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
         transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
+        transforms.ToTensor(),
         ])
 
     target_transform = transform.Compose([
-        flow_transforms.ArrayToTensor(),
+        transforms.ToTensor(),
         transformes.Normalize(mean=[0,0], std=[args.div_flow, args.div_flow]),
         ])
 
-    co_transform = flow_transforms.Compose([
-            flow_transforms.RandomTranslate(10),
-            flow_transforms.RandomRotate(10,5),
-            flow_transforms.RandomCrop((320,448)),
-            flow_transforms.RandomVerticalFlip(),
-            flow_transforms.RandomHorizontalFlip()
+    co_transform = transforms.Compose([
+            RandomTranslate(10),
+            transforms.RandomRotation(10,5),
+            transforms.RandomCrop((320,448)),
+            transforms.RandomVerticalFlip(),
+            transforms.RandomHorizontalFlip()
         ])
 
     print(f"=> fetching image pairs in {args.data}") 
@@ -161,8 +160,9 @@ def main():
         network_data = None
         print(f"=> using pre_trained model {args.arch}")
 
-    ### to be changed
-    model = model.__dict__[args.arch](network_data).to(device)
+    model = FlownetCorr.__dict__[args.arch](network_data).to(device)
+
+
 
 
 

@@ -3,6 +3,13 @@ import cv2
 import os
 import torch
 
+from __future__ import division
+import random
+import numpy as np
+import numbers
+import types
+import scipy.ndimage as ndimage
+
 def openit(path, line):
     # opening and reading the yaw pitch files
     with open(path, "r") as files:
@@ -53,7 +60,33 @@ def show():
     cv2.destroyAllWindows()
 
 
-## ---------------- For MaskFlowCorr ---------------- ##
+## ---------------- For FlowNetCorr ---------------- ##
+
+class RandomTranslate(object):
+    def __init__(self, translation):
+        if isinstance(translation, numbers.Number):
+            self.translation = (int(translation), int(translation))
+        else:
+            self.translation = translation
+
+    def __call__(self, inputs,target):
+        h, w, _ = inputs[0].shape
+        th, tw = self.translation
+        tw = random.randint(-tw, tw)
+        th = random.randint(-th, th)
+        if tw == 0 and th == 0:
+            return inputs, target
+        # compute x1,x2,y1,y2 for img1 and target, and x3,x4,y3,y4 for img2
+        x1,x2,x3,x4 = max(0,tw), min(w+tw,w), max(0,-tw), min(w-tw,w)
+        y1,y2,y3,y4 = max(0,th), min(h+th,h), max(0,-th), min(h-th,h)
+
+        inputs[0] = inputs[0][y1:y2,x1:x2]
+        inputs[1] = inputs[1][y3:y4,x3:x4]
+        target = target[y1:y2,x1:x2]
+        target[:,:,0] += tw
+        target[:,:,1] += th
+
+        return inputs, target
 
 
 ## ---------------- For Global Motion Aggregation ---------------- ##
