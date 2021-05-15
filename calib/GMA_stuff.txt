@@ -1,0 +1,3 @@
+Charbonnier potential and the Lorentzian potential
+Markov Random Fields (MRFs) 
+
