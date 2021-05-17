@@ -25,9 +25,11 @@ I am thinking of using some kind of optical flow model and rather than doing som
 Adding details about the architecture soon!
 ### 1. FlowNetCorr
 [reseach paper](https://arxiv.org/pdf/1504.06852.pdf)
-adding details soon !
+![](./Docs/FlowNetARch.png)
 ### 2. Global Motion Aggregation
-### 3. MarkFlowNet and FlowNet2.0 --> no implimentation 
+![](./Docs/GMA_Arch.png)
+### 3. MarkFlowNet --> no implimentation 
+### 4. FlowNet2.0 --> no implimentation 
 
 ## Navigation
 [Labelled dataset](./labeled)</br>
