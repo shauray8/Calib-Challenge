@@ -24,6 +24,8 @@ I am thinking of using some kind of optical flow model and rather than doing som
 </br></br>
 Adding details about the architecture soon!
 ### 1. FlowNetCorr
+[reseach paper](https://arxiv.org/pdf/1504.06852.pdf)
+adding details soon !
 ### 2. Global Motion Aggregation
 ### 3. MarkFlowNet and FlowNet2.0 --> no implimentation 
 
