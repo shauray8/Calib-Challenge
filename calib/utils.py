@@ -10,6 +10,7 @@ import numpy as np
 import numbers
 import types
 import scipy.ndimage as ndimage
+from torch.utils.data import DataLoader, Dataset
 import argparse
 
 def openit(path, line):
@@ -49,7 +50,7 @@ def show(data):
         cv2.imshow('frame',frame)
 
         ## prints out all the frames and corosponding yaw and pitch
-        #print(frame)
+        #print(len(frame))
         #print(line[i])
 
         i += 1
@@ -61,6 +62,21 @@ def show(data):
     cap.release()
     cv2.destroyAllWindows()
 
+
+def frame_by_frame(input):
+    cap= cv2.VideoCapture(input)
+    i=0
+    frames = []
+    while(cap.isOpened()):
+        ret, frame = cap.read()
+        if ret == False:
+            break
+        frames = frame
+        i+=1
+ 
+    cap.release()
+    cv2.destroyAllWindows()
+    print(len(frames))
 
 ## ---------------- For FlowNetCorr ---------------- ##
 
@@ -97,26 +113,14 @@ def save_checkpoint(state, is_best, save_path, filename='checkpoint.pth.tar'):
         shutil.copyfile(os.path.join(save_path,filename), os.path.join(save_path,'model_best.pth.tar'))
 
 
-class AverageMeter(object):
-    """Computes and stores the average and current value"""
+class DATA_LOADER(object):
+    def __init__(self, root, transform, split):        
+        self.transform = transforms.Compose(transform)
+        self.unaligned = unaligned
 
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.val = 0
-        self.avg = 0
-        self.sum = 0
-        self.count = 0
-
-    def update(self, val, n=1):
-        self.val = val
-        self.sum += val * n
-        self.count += n
-        self.avg = self.sum / self.count
-
-    def __repr__(self):
-        return '{:.3f} ({:.3f})'.format(self.val, self.avg)
+        self.input_vid = sorted(glob.glob(os.path.join(root) + '/*.HEVC'))
+        self.target_num = sorted(glob.glob(os.path.join(root) + '/*.txt'))
+    
 
 
 
@@ -176,3 +180,4 @@ if __name__ == "__main__":
                     help='number of video')
     args = parser.parse_args()
     show(args.data)
+    #frame_by_frame('../labeled/2.hevc')
