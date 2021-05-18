@@ -261,4 +261,36 @@ def validation(val_loader, model, epoch, output_writers):
     flow2_MSEs = AverageMeter()
 
     model.eval()
+    
+    end = time.time()
+    for i, (input, target) in enumerate(val_loader):
+        target = target.to(device)
+        input = torch.cat(input,1).to(device)
+
+        output = model(input)
+        flow2_MSE = args.div_flow * realMSE(output, target, sparse=args.sparse)
+
+        flow2_MSEs.update(flow2_MSE.item(), target.size(0))
+
+        batch_time.update(time.time() - end)
+        end = time.time()
+
+        if i < len(output_writers):
+            if epoch == 0:
+                mean_values = torch.tensor([0.45,0.432,0.411], dtype=input.dtype).view(3,1,1)
+                output_writers[i].add_image('GroundTruth', flow2rgb(args.div_flow * target[0], max_value=10), 0)
+                output_writers[i].add_image('Inputs', (input[0,:3].cpu() + mean_values).clamp(0,1), 0)
+                output_writers[i].add_image('Inputs', (input[0,3:].cpu() + mean_values).clamp(0,1), 1)
+            output_writers[i].add_image('FlowNet Outputs', flow2rgb(args.div_flow * output[0], max_value=10), epoch)
+
+        if i % args.print_freq == 0:
+            print('Test: [{0}/{1}]\t Time {2}\t MSE {3}'
+                  .format(i, len(val_loader), batch_time, flow2_MSEs))
+
+    print(' * MSE {:.3f}'.format(flow2_MSEs.avg))
+
+    return flow2_MSEs.avg
         
+
+if __name__ == "__main__":
+    main()
