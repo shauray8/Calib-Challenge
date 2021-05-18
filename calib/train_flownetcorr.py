@@ -118,8 +118,8 @@ def main():
         ])
 
     target_transform = transform.Compose([
-        transforms.ToTensor(),
         transformes.Normalize(mean=[0,0], std=[args.div_flow, args.div_flow]),
+        transforms.ToTensor(),
         ])
 
     co_transform = transforms.Compose([
@@ -184,8 +184,50 @@ def main():
     for epoch in range(args.start_epoch, args.epochs):
         scheduler.step()
 
+        train_loss, train_MSE = train(train_loader, model, optimizer, epoch, train_writer)
+        train_writer.add_scalar('mean MSE', train_MSE, epoch)
+
+        with torch.no_grad():
+            MSE = validation(val_loader, model, epoch, output_writers)
+        test_writer.add_scalar('mean MSE', MSE, epoch)
+
+        if best_MSE < 0:
+            best_MSE = MSE
+
+        is_best = MSE < best_MSE
+        best_MSE = min(MSE, best_MSE)
+
+        save_checkpoint({
+            'epoch': epoch + 1,
+            'arch': args.arch,
+            'state_dict': model.module.state_dict(),
+            'best_EPE': best_EPE,
+            'div_flow': args.div_flow
+        }, is_best, save_path)
 
 
+def train(train_loader, model, optimizer, epoch, train_writer):
+    global n_iters, args
+
+    batch_time = AverageMeter()
+    data_time = AverageMeter()
+    losses = AverageMeter()
+    flow2_MSEs = AverageMeter()
+
+    epoch_size = len(train_loader) if args.epoch_size == 0 else min(len(train_loader), args.epoch_size)
+
+    model.train()
+    end = time.time()
+
+    for i, (input, target) in enumerate(train_loader):
+        date_time.update(time.time() - end)
+        target = target.to(device)
+        input = torch.cat(input,1).to(device)
+
+        output = model(input)
+        if args.sparse:
+            h, w = target.size()[-2:]
+            output = [F.interpolate(output[0], (h,w)), *output[1:]]
 
 
 
