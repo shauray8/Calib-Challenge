@@ -13,6 +13,7 @@ import datetime
 from torch.utils.tensorboard import SummaryWriter
 
 from FlownetCorr import *
+from utils import *
 import FlownetCorr
 
 def callable():
