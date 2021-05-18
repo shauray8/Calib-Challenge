@@ -150,7 +150,7 @@ def main():
             pin_memory=True, shuffle = False)
 
 
-    ## --------------------- MODEL --------------------- ##
+## --------------------- MODEL --------------------- ##
     
     if args.pretrained:
         network_data = torch.load(args.pretrained)
@@ -161,6 +161,28 @@ def main():
         print(f"=> using pre_trained model {args.arch}")
 
     model = FlownetCorr.__dict__[args.arch](network_data).to(device)
+    if args.solver not in ['adam', 'sgd']:
+        print("=> enter a supported optimizer")
+        break
+    
+    print(f'=> settting {args.solver} solver')
+    param_groups = [{'params: model.bias_parameters(), "weight_decay": args.bias_decay'},
+            {'params': model.weight_parameters(), 'weight_decay': args.weight_decay}]
+
+    if device.type == 'cuda':
+        model = torch.nn.DataParallel(model).cuda()
+        cudnn.benchmark = True
+    
+    optimizer = torch.optim.Adam(param_groups, args.lr, betas=(args.mometum, args.beta)) if arg.solver == 'adam' else optimizer = torch.optim.SGD(param_groups, args.lr, momentum=args.momentum)
+    
+    if args.evaluate:
+        best_MSE = validation(val_loader, model, 0, output_writers)
+        return
+
+    scheduler = torch.optim.lr_scheduler.MultiStepLr(optimizer, milestones=args.milestone, gamma=.5)
+
+    for epoch in range(args.start_epoch, args.epochs):
+        scheduler.step()
 
 
 
