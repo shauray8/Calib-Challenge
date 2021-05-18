@@ -179,7 +179,7 @@ def main():
     optimizer = torch.optim.Adam(param_groups, args.lr, betas=(args.mometum, args.beta)) if arg.solver == 'adam' else torch.optim.SGD(param_groups, args.lr, momentum=args.momentum)
     
     if args.evaluate:
-        best_MSE = validation(val_loader, model, 0, output_writers)
+        best_MSE = validation(val_loader, model, 0, output_writers, loss_function)
         return
 
 ## --------------------- Scheduler and Loss Function --------------------- ##
@@ -193,21 +193,21 @@ def main():
     for epoch in range(args.start_epoch, args.epochs):
         scheduler.step()
 
-        train_loss, train_MSE, display = train(train_loader, model,
+        avg_loss_MSE, train_Loss_MSE, display = train(train_loader, model,
                 optimizer, epoch, train_writer, loss_function)
-        train_writer.add_scalar('mean MSE', train_MSE, epoch)
+        train_writer.add_scalar('mean MSE', avg_loss_MSE, epoch)
 
 ## --------------------- Validation Step --------------------- ##
 
         with torch.no_grad():
-            MSE = validation(val_loader, model, epoch, output_writers)
-        test_writer.add_scalar('mean MSE', MSE, epoch)
+            MSE_loss_val, display_val = validation(val_loader, model, epoch, output_writers, loss_function)
+        test_writer.add_scalar('mean MSE', MSE_loss_val, epoch)
 
         if best_MSE < 0:
-            best_MSE = MSE
+            best_MSE = MSE_loss_val
 
-        is_best = MSE < best_MSE
-        best_MSE = min(MSE, best_MSE)
+        is_best = MSE_loss_val < best_MSE
+        best_MSE = min(MSE_loss_val, best_MSE)
 
 ## --------------------- Saving on every epoch --------------------- ##
 
@@ -215,7 +215,7 @@ def main():
             'epoch': epoch + 1,
             'arch': args.arch,
             'state_dict': model.module.state_dict(),
-            'best_EPE': best_EPE,
+            'best_EPE': best_MSE,
             'div_flow': args.div_flow
         }, is_best, save_path)
 
@@ -224,20 +224,16 @@ def main():
 def train(train_loader, model, optimizer, epoch, train_writer, loss_function):
     global n_iters, args
 
-    batch_time = AverageMeter()
-    data_time = AverageMeter()
-    losses = AverageMeter()
-    flow2_MSEs = AverageMeter()
-
     epoch_size = len(train_loader) if args.epoch_size == 0 else min(len(train_loader), args.epoch_size)
 
+    losses = []
     model.train()
     end = time.time()
 
 ## --------------------- Training --------------------- ##
 
     for i, (input, target) in enumerate(train_loader):
-        date_time.update(time.time() - end)
+        start_time = time.time()
         target = target.to(device)
         input = torch.cat(input,1).to(device)
 
@@ -247,37 +243,32 @@ def train(train_loader, model, optimizer, epoch, train_writer, loss_function):
             output = [F.interpolate(output[0], (h,w)), *output[1:]]
 
         
-        loss = loss_function(output, target, weights=args.multiscale_weights, sparse=arg.sparse)
-        flow2_MSE = args.div_flow * realMSE(ouptut[0], target, sparse=arg.sparse)
+        loss = loss_function(output, target)
 
-        losses.update(loss.item(), target.size(0))
+        losses.append(float(loss.item()))
         train_writer.add_scalar('train_loss', loss.item(), n_inter)
-        flow2_MSEs.update(flow2_MSE.item(), target.size(0))
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        batch_time.update(time.time() - end)
         end = time.time()
+        batch_time = end - start_time
         
 ## --------------------- Stuff to display at output --------------------- ##
 
         if i % args.print_freq == 0:
-            display = 'Epoch: [{0}][{1}/{2}] ; Time {3} ; Data {4} ; Loss {5} ; MSE {6}'
+            display = 'Epoch: [{0}][{1}/{2}] ; Time {3} ; MSELoss {5}'
                   .format(epoch, i, epoch_size, batch_time,
-                          data_time, losses, flow2_MSEs)
+                        sum(losses)/len(losses))
         n_iters += 1
         if i >= epoch_size:
             break
 
-    return losses.avg, flow2_MSEs.avg, display
+    return losses.avg, loss.item(), display
 
-def validation(val_loader, model, epoch, output_writers):
+def validation(val_loader, model, epoch, output_writers, loss_function):
     global args
-
-    batch_time = AverageMeter()
-    flow2_MSEs = AverageMeter()
 
     model.eval()
     
@@ -287,11 +278,8 @@ def validation(val_loader, model, epoch, output_writers):
         input = torch.cat(input,1).to(device)
 
         output = model(input)
-        flow2_MSE = args.div_flow * realMSE(output, target, sparse=args.sparse)
+        loss = loss_function(output, target)
 
-        flow2_MSEs.update(flow2_MSE.item(), target.size(0))
-
-        batch_time.update(time.time() - end)
         end = time.time()
 
         if i < len(output_writers):
@@ -303,12 +291,10 @@ def validation(val_loader, model, epoch, output_writers):
             output_writers[i].add_image('FlowNet Outputs', flow2rgb(args.div_flow * output[0], max_value=10), epoch)
 
         if i % args.print_freq == 0:
-            print('Test: [{0}/{1}]\t Time {2}\t MSE {3}'
-                  .format(i, len(val_loader), batch_time, flow2_MSEs))
+            display_val = 'Test: [{0}/{1}] ; Loss {2}'
+                  .format(i, len(val_loader), loss.item)
 
-    print(' * MSE {:.3f}'.format(flow2_MSEs.avg))
-
-    return flow2_MSEs.avg
+    return loss.item(), display_val
         
 
 if __name__ == "__main__":
