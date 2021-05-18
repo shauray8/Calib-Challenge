@@ -64,19 +64,20 @@ def show(data):
 
 
 def frame_by_frame(input):
-    cap= cv2.VideoCapture(input)
-    i=0
     frames = []
-    while(cap.isOpened()):
-        ret, frame = cap.read()
-        if ret == False:
-            break
-        frames = frame
-        i+=1
+    for i in input:
+        cap= cv2.VideoCapture(input)
+        i=0
+        while(cap.isOpened()):
+            ret, frame = cap.read()
+            if ret == False:
+                break
+            frames.append(frame)
+            i+=1
  
-    cap.release()
-    cv2.destroyAllWindows()
-    print(len(frames))
+        cap.release()
+        cv2.destroyAllWindows()
+    return torch.tensor(frames)
 
 ## ---------------- For FlowNetCorr ---------------- ##
 
@@ -120,8 +121,11 @@ class DATA_LOADER(object):
 
         self.input_vid = sorted(glob.glob(os.path.join(root) + '/*.HEVC'))
         self.target_num = sorted(glob.glob(os.path.join(root) + '/*.txt'))
+        
+        self.data = frame_by_frame(self.input_vid)
     
-
+        for i in range(len(self.data)):
+            img_data = torch.concatenate(self.data[i], self.data[i+1])
 
 
 ## ---------------- For Global Motion Aggregation ---------------- ##
@@ -179,5 +183,5 @@ if __name__ == "__main__":
     parser.add_argument('--data', default=1, type=int, metavar='N',
                     help='number of video')
     args = parser.parse_args()
-    show(args.data)
-    #frame_by_frame('../labeled/2.hevc')
+    #show(args.data)
+    frame_by_frame('../labeled/2.hevc')
