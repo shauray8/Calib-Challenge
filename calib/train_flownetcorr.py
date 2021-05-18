@@ -82,20 +82,16 @@ parser.add_argument('--div-flow', default=20,
                     help='value by which flow will be divided. Original value is 20 but 1 with batchNorm gives good results')
 parser.add_argument('--milestones', default=[100,150,200], metavar='N', nargs='*', help='epochs at which learning rate is divided by 2')
 
-best_EPE = -1
+## ----------------------- global variables ----------------------- ##
+
+best_MSE = -1
 n_iter = 0
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def main():
-    global args, best_EPE
+    global args, best_MSE
     args = parser.parse_args()
-    save_path = '{},{},{}epochs{},b{},lr{}'.format(
-        args.arch,
-        args.solver,
-        args.epochs,
-        ',epochSize'+str(args.epoch_size) if args.epoch_size > 0 else '',
-        args.batch_size,
-        args.lr)
+    save_path = f'{args.arch},{args.solver},{args.epochs},bs{args.batch_size},lr{args.lr}'
         
     if not args.o_data:
         timestamp = datetime.datatime.now().strftime("%m-%d-%H:%M")
@@ -111,7 +107,8 @@ def main():
     for i in range(3):
         output_writers.append(SummaryWriter(os.path.join(save_path, 'test', str(i))))
 
-    ## --------------------- loading the data --------------------- ##
+## --------------------- transforming the data --------------------- ##
+
     input_transform = transform.Compose([
         transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
         transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
@@ -131,6 +128,8 @@ def main():
             transforms.RandomHorizontalFlip()
         ])
 
+## --------------------- loading the data --------------------- ##
+
     print(f"=> fetching image pairs in {args.data}") 
     train_set, test_set = datassets.__dict__[args.dataset](
             args.data,
@@ -139,8 +138,8 @@ def main():
             co_transform = co_transform,
             splt = args.split_file if args.split_file else args.split_value,
             )
-    print(f"{len(test_set) + len(train_set)} samples found, {len(train_set)} train samples and {len(test_set)} test samples")
 
+    print(f"{len(test_set) + len(train_set)} samples found, {len(train_set)} train samples and {len(test_set)} test samples")
 
     train_loader = torch.utils.data.DataLoader(
             train_set, batch_size = args.batch_size, num_workers=args.workers,
@@ -150,8 +149,7 @@ def main():
             test_set, batch_size=args.batch_size, num_workers=args.num_workers,
             pin_memory=True, shuffle = False)
 
-
-## --------------------- MODEL --------------------- ##
+## --------------------- MODEL from FlowNetCorr.py --------------------- ##
     
     if args.pretrained:
         network_data = torch.load(args.pretrained)
@@ -161,32 +159,42 @@ def main():
         network_data = None
         print(f"=> using pre_trained model {args.arch}")
 
+## --------------------- Checking and selecting a optimizer [SGD, ADAM] --------------------- ##
+
     model = FlownetCorr.__dict__[args.arch](network_data).to(device)
     if args.solver not in ['adam', 'sgd']:
         print("=> enter a supported optimizer")
         break
     
     print(f'=> settting {args.solver} solver')
-    param_groups = [{'params: model.bias_parameters(), "weight_decay": args.bias_decay'},
+    param_groups = [{'params': model.bias_parameters(), 'weight_decay': args.bias_decay},
             {'params': model.weight_parameters(), 'weight_decay': args.weight_decay}]
 
     if device.type == 'cuda':
         model = torch.nn.DataParallel(model).cuda()
         cudnn.benchmark = True
     
-    optimizer = torch.optim.Adam(param_groups, args.lr, betas=(args.mometum, args.beta)) if arg.solver == 'adam' else optimizer = torch.optim.SGD(param_groups, args.lr, momentum=args.momentum)
+    optimizer = torch.optim.Adam(param_groups, args.lr, betas=(args.mometum, args.beta)) if arg.solver == 'adam' else torch.optim.SGD(param_groups, args.lr, momentum=args.momentum)
     
     if args.evaluate:
         best_MSE = validation(val_loader, model, 0, output_writers)
         return
 
+## --------------------- Scheduler and Loss Function --------------------- ##
+
     scheduler = torch.optim.lr_scheduler.MultiStepLr(optimizer, milestones=args.milestone, gamma=.5)
+
+    loss_function = nn.MSELoss()
+
+## --------------------- Training Loop --------------------- ##
 
     for epoch in range(args.start_epoch, args.epochs):
         scheduler.step()
 
         train_loss, train_MSE = train(train_loader, model, optimizer, epoch, train_writer)
         train_writer.add_scalar('mean MSE', train_MSE, epoch)
+
+## --------------------- Validation Step --------------------- ##
 
         with torch.no_grad():
             MSE = validation(val_loader, model, epoch, output_writers)
@@ -198,6 +206,8 @@ def main():
         is_best = MSE < best_MSE
         best_MSE = min(MSE, best_MSE)
 
+## --------------------- Saving on every epoch --------------------- ##
+
         save_checkpoint({
             'epoch': epoch + 1,
             'arch': args.arch,
@@ -206,8 +216,9 @@ def main():
             'div_flow': args.div_flow
         }, is_best, save_path)
 
+## --------------------- TRAIN function for the training loop --------------------- ##
 
-def train(train_loader, model, optimizer, epoch, train_writer):
+def train(train_loader, model, optimizer, epoch, train_writer, loss_function):
     global n_iters, args
 
     batch_time = AverageMeter()
@@ -231,7 +242,7 @@ def train(train_loader, model, optimizer, epoch, train_writer):
             output = [F.interpolate(output[0], (h,w)), *output[1:]]
 
         
-        loss = MSEloss(output, target, weights=args.multiscale_weights, sparse=arg.sparse)
+        loss = loss_function(output, target, weights=args.multiscale_weights, sparse=arg.sparse)
         flow2_MSE = args.div_flow * realMSE(ouptut[0], target, sparse=arg.sparse)
 
         losses.update(loss.item(), target.size(0))
