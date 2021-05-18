@@ -229,6 +229,36 @@ def train(train_loader, model, optimizer, epoch, train_writer):
             h, w = target.size()[-2:]
             output = [F.interpolate(output[0], (h,w)), *output[1:]]
 
+        
+        loss = MSEloss(output, target, weights=args.multiscale_weights, sparse=arg.sparse)
+        flow2_MSE = args.div_flow * realMSE(ouptut[0], target, sparse=arg.sparse)
 
+        losses.update(loss.item(), target.size(0))
+        train_writer.add_scalar('train_loss', loss.item(), n_inter)
+        flow2_MSEs.update(flow2_MSE.item(), target.size(0))
 
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        batch_time.update(time.time() - end)
+        end = time.time()
+
+        if i % args.print_freq == 0:
+            print('Epoch: [{0}][{1}/{2}]\t Time {3}\t Data {4}\t Loss {5}\t EPE {6}'
+                  .format(epoch, i, epoch_size, batch_time,
+                          data_time, losses, flow2_EPEs))
+        n_iter += 1
+        if i >= epoch_size:
+            break
+
+    return losses.avg, flow2_MSEs.avg
+
+def validation(val_loader, model, epoch, output_writers):
+    global args
+
+    batch_time = AverageMeter()
+    flow2_MSEs = AverageMeter()
+
+    model.eval()
         
