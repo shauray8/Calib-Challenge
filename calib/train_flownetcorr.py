@@ -16,6 +16,8 @@ from FlownetCorr import *
 from utils import *
 import FlownetCorr
 
+## -------------------- checking callable functions from FlowNetCorr -------------------- ##
+
 def callable():
     kwargs = sorted(name for name in FlownetCorr.__dict__
         if name.islower() and not name.startswith("__")
@@ -191,7 +193,8 @@ def main():
     for epoch in range(args.start_epoch, args.epochs):
         scheduler.step()
 
-        train_loss, train_MSE = train(train_loader, model, optimizer, epoch, train_writer)
+        train_loss, train_MSE, display = train(train_loader, model,
+                optimizer, epoch, train_writer, loss_function)
         train_writer.add_scalar('mean MSE', train_MSE, epoch)
 
 ## --------------------- Validation Step --------------------- ##
@@ -231,6 +234,8 @@ def train(train_loader, model, optimizer, epoch, train_writer, loss_function):
     model.train()
     end = time.time()
 
+## --------------------- Training --------------------- ##
+
     for i, (input, target) in enumerate(train_loader):
         date_time.update(time.time() - end)
         target = target.to(device)
@@ -255,16 +260,18 @@ def train(train_loader, model, optimizer, epoch, train_writer, loss_function):
 
         batch_time.update(time.time() - end)
         end = time.time()
+        
+## --------------------- Stuff to display at output --------------------- ##
 
         if i % args.print_freq == 0:
-            print('Epoch: [{0}][{1}/{2}]\t Time {3}\t Data {4}\t Loss {5}\t EPE {6}'
+            display = 'Epoch: [{0}][{1}/{2}] ; Time {3} ; Data {4} ; Loss {5} ; MSE {6}'
                   .format(epoch, i, epoch_size, batch_time,
-                          data_time, losses, flow2_EPEs))
-        n_iter += 1
+                          data_time, losses, flow2_MSEs)
+        n_iters += 1
         if i >= epoch_size:
             break
 
-    return losses.avg, flow2_MSEs.avg
+    return losses.avg, flow2_MSEs.avg, display
 
 def validation(val_loader, model, epoch, output_writers):
     global args
