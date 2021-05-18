@@ -10,6 +10,7 @@ import torch.optim
 import torch.utils.data
 import torchvision.transforms as transforms
 import datetime
+from torch.utils.data import DataLoader, Dataset
 from torch.utils.tensorboard import SummaryWriter
 
 from FlownetCorr import *
@@ -111,43 +112,28 @@ def main():
 
 ## --------------------- transforming the data --------------------- ##
 
-    input_transform = transform.Compose([
-        transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
-        transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
-        transforms.ToTensor(),
-        ])
-
-    target_transform = transform.Compose([
-        transformes.Normalize(mean=[0,0], std=[args.div_flow, args.div_flow]),
-        transforms.ToTensor(),
-        ])
-
-    co_transform = transforms.Compose([
+    input_transform = transforms.Compose([
             RandomTranslate(10),
-            transforms.RandomRotation(10,5),
-            transforms.RandomCrop((320,448)),
-            transforms.RandomVerticalFlip(),
-            transforms.RandomHorizontalFlip()
+            transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
+            transforms.GaussianBlur(2, sigma=(0.1, 2.0))
+            transforms.RandomGrayscale(p=0.1),
+            transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
+            transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
+            transforms.ToTensor(),
         ])
 
-## --------------------- loading the data --------------------- ##
+## --------------------- loading and concatinating the data --------------------- ##
 
     print(f"=> fetching image pairs in {args.data}") 
-    train_set, test_set = datassets.__dict__[args.dataset](
-            args.data,
-            transfoms = input_tranform,
-            target_transform = target_transform,
-            co_transform = co_transform,
-            splt = args.split_file if args.split_file else args.split_value,
-            )
+    train_set, val_set = LOAD_DATA("../labeled", transform=input_transform, split = args.split_file if args.split_file else args.split_value)
 
     print(f"{len(test_set) + len(train_set)} samples found, {len(train_set)} train samples and {len(test_set)} test samples")
 
-    train_loader = torch.utils.data.DataLoader(
+    train_loader = DataLoader(
             train_set, batch_size = args.batch_size, num_workers=args.workers,
             pin_memory=True, shuffle=True)
 
-    val_loader = torch.utils.data.DataLoader(
+    val_loader = DataLoader(
             test_set, batch_size=args.batch_size, num_workers=args.num_workers,
             pin_memory=True, shuffle = False)
 
@@ -166,7 +152,7 @@ def main():
     model = FlownetCorr.__dict__[args.arch](network_data).to(device)
     if args.solver not in ['adam', 'sgd']:
         print("=> enter a supported optimizer")
-        break
+        return 
     
     print(f'=> settting {args.solver} solver')
     param_groups = [{'params': model.bias_parameters(), 'weight_decay': args.bias_decay},
@@ -292,7 +278,7 @@ def validation(val_loader, model, epoch, output_writers, loss_function):
 
         if i % args.print_freq == 0:
             display_val = 'Test: [{0}/{1}] ; Loss {2}'
-                  .format(i, len(val_loader), loss.item)
+                  .format(i, len(val_loader), loss.item())
 
     return loss.item(), display_val
         
