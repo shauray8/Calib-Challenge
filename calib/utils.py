@@ -1,7 +1,7 @@
 from __future__ import division
 import matplotlib.pyplot as plt
 import cv2
-import os
+import os, glob
 import torch
 import shutil
 
@@ -94,33 +94,35 @@ class RandomTranslate(object):
 
 class DATA_LOADER(object):
     def __init__(self, root, transform, split):        
-        self.transform = transforms.Compose(transform)
-        self.unaligned = unaligned
+        #self.transform = transforms.Compose(transform)
 
-        self.input_vid = sorted(glob.glob(os.path.join(root) + '/*.HEVC'))
+        self.input_vid = sorted(glob.glob(os.path.join(root) + '/1.HEVC'))
         self.target_num = sorted(glob.glob(os.path.join(root) + '/*.txt'))
         
         self.data = frame_by_frame(self.input_vid)
     
-        for i in range(len(self.data)):
-            img_data = torch.concatenate(self.data[i], self.data[i+1])
+        #for i in range(len(self.data)):
+        #img_data = torch.concatenate(self.data[i], self.data[i+1])
 
-    @staticmethod
-    def frame_by_frame(input):
-        frames = []
-        for i in input:
-            cap= cv2.VideoCapture(input)
-            i=0
-            while(cap.isOpened()):
-                ret, frame = cap.read()
-                if ret == False:
-                    break
-                frames.append(frame)
-                i+=1
-     
-            cap.release()
-            cv2.destroyAllWindows()
-        return torch.tensor(frames)
+def frame_by_frame(input):
+    frames = []
+    for j in input:
+        cap= cv2.VideoCapture(j)
+        i=0
+        while(cap.isOpened()):
+            ret, frame = cap.read()
+            if ret == False:
+                break
+            frames.append(frame)
+            i+=1
+
+        cap.release()
+        cv2.destroyAllWindows()
+        frames.append(torch.zeros(frames[0].shape))
+        print("inner",len(frames))
+        final_images = [torch.cat((torch.tensor(frames[i]), torch.tensor(frames[i+1])), 1) for i in range(len(frames))]
+    print(len(final_image))
+    return "nothing"
 
 def save_checkpoint(state, is_best, save_path, filename='checkpoint.pth.tar'):
     torch.save(state, os.path.join(save_path,filename))
@@ -183,4 +185,5 @@ if __name__ == "__main__":
                     help='number of video')
     args = parser.parse_args()
     #show(args.data)
-    frame_by_frame('../labeled/2.hevc')
+    #frame_by_frame('../labeled/2.hevc')
+    DATA_LOADER("../labeled", "Transform", 22).frame_by_frame
