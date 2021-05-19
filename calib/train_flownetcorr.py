@@ -31,7 +31,8 @@ def callable():
 
 parser = argparse.ArgumentParser(description='PyTorch FlowNet Training on several datasets',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('data', metavar='DIR',default="../../data/calib_data"
+
+parser.add_argument('--data', default="../../data/calib_image_data", type=str,
                     help='path to dataset')
 
 group = parser.add_mutually_exclusive_group()
@@ -40,9 +41,7 @@ group.add_argument('--split_value', default=0.8, type=float,
                    help='test-val split proportion between 0 (only test) and 1 (only train), '
                         'will be overwritten if a split file is set')
 parser.add_argument('--arch', '-a', metavar='ARCH', default='flownetc',
-                    choices=model_names,
-                    help='model architecture, overwritten if pretrained is specified: ' +
-                    ' | '.join(model_names))
+                    choices=callable,)
 parser.add_argument('--solver', default='adam',choices=['adam','sgd'],
                     help='solver algorithms')
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
@@ -91,16 +90,16 @@ def main():
     args = parser.parse_args()
     save_path = f'{args.arch},{args.solver},{args.epochs},bs{args.batch_size},lr{args.lr}'
         
-    if not args.o_data:
-        timestamp = datetime.datatime.now().strftime("%m-%d-%H:%M")
-        save_path = os.path.join(args.dataset, save_path)
-    save_path = os.path.join(args.dataset, save_path)
+    if not args.no_date:
+        timestamp = datetime.datetime.now().strftime("%m-%d-%H:%M")
+        save_path = os.path.join("./pretrained/flownetcorr", save_path)
+    save_path = os.path.join("./pretrained/flownetcorr", save_path)
     print(f"=> will save everything to {save_path}")
-    if not os,path.exist(save_path):
+    if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    train_writer = SummaryWritter(os.path.join(save_path, "train"))
-    test_writer = SummaryWritter(os.path.join(save_path, "test"))
+    train_writer = SummaryWriter(os.path.join(save_path, "train"))
+    test_writer = SummaryWriter(os.path.join(save_path, "test"))
     output_writers = []
     for i in range(3):
         output_writers.append(SummaryWriter(os.path.join(save_path, 'test', str(i))))
@@ -110,7 +109,7 @@ def main():
     input_transform = transforms.Compose([
             #RandomTranslate(10),
             transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
-            transforms.GaussianBlur(2, sigma=(0.1, 2.0))
+            transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
             transforms.RandomGrayscale(p=0.1),
             transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
             transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
@@ -120,7 +119,7 @@ def main():
 ## --------------------- loading and concatinating the data --------------------- ##
 
     print(f"=> fetching image pairs from {args.data}") 
-    train_set, val_set = Transformed_data(args.data, transform=input_transform, split = args.split_value)
+    train_set, test_set = Transformed_data(args.data, transform=input_transform, split = args.split_value)
 
     print(f"{len(test_set) + len(train_set)} samples found, {len(train_set)} train samples and {len(test_set)} test samples")
 
@@ -129,7 +128,7 @@ def main():
             pin_memory=True, shuffle=True)
 
     val_loader = DataLoader(
-            test_set, batch_size=args.batch_size, num_workers=args.num_workers,
+            test_set, batch_size=args.batch_size, num_workers=args.workers,
             pin_memory=True, shuffle = False)
 
 ## --------------------- MODEL from FlowNetCorr.py --------------------- ##
@@ -144,7 +143,7 @@ def main():
 
 ## --------------------- Checking and selecting a optimizer [SGD, ADAM] --------------------- ##
 
-    model = FlownetCorr.__dict__[args.arch](network_data).to(device)
+    model = flownetc.__dict__[args.arch](network_data).to(device)
     if args.solver not in ['adam', 'sgd']:
         print("=> enter a supported optimizer")
         return 
@@ -238,9 +237,8 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 ## --------------------- Stuff to display at output --------------------- ##
 
         if i % args.print_freq == 0:
-            display = 'Epoch: [{0}][{1}/{2}] ; Time {3} ; MSELoss {5}'
-                  .format(epoch, i, epoch_size, batch_time,
-                        sum(losses)/len(losses))
+            display = ('Epoch: [{0}][{1}/{2}] ; Time {3} ; MSELoss {5}').format(epoch, 
+                    i, epoch_size, batch_time, sum(losses)/len(losses))
         n_iters += 1
         if i >= epoch_size:
             break
@@ -271,8 +269,7 @@ def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
        #     output_writers[i].add_image('FlowNet Outputs', flow2rgb(args.div_flow * output[0], max_value=10), epoch)
 
         if i % args.print_freq == 0:
-            display_val = 'Test: [{0}/{1}] ; Loss {2}'
-                  .format(i, len(val_loader), loss.item())
+            display_val = ('Test: [{0}/{1}] ; Loss {2}').format(i, len(val_loader), loss.item())
 
     return loss.item(), display_val
         
