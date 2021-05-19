@@ -113,7 +113,7 @@ def main():
 ## --------------------- transforming the data --------------------- ##
 
     input_transform = transforms.Compose([
-            RandomTranslate(10),
+            #RandomTranslate(10),
             transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
             transforms.GaussianBlur(2, sigma=(0.1, 2.0))
             transforms.RandomGrayscale(p=0.1),
