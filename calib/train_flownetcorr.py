@@ -31,16 +31,12 @@ def callable():
 
 parser = argparse.ArgumentParser(description='PyTorch FlowNet Training on several datasets',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('data', metavar='DIR',
+parser.add_argument('data', metavar='DIR',default="../../data/calib_data"
                     help='path to dataset')
-parser.add_argument('--dataset', metavar='DATASET', default='flying_chairs',
-                    choices=dataset_names,
-                    help='dataset type : ' +
-                    ' | '.join(dataset_names))
+
 group = parser.add_mutually_exclusive_group()
-group.add_argument('-s', '--split-file', default=None, type=str,
-                   help='test-val split file')
-group.add_argument('--split-value', default=0.8, type=float,
+
+group.add_argument('--split_value', default=0.8, type=float,
                    help='test-val split proportion between 0 (only test) and 1 (only train), '
                         'will be overwritten if a split file is set')
 parser.add_argument('--arch', '-a', metavar='ARCH', default='flownetc',
@@ -57,7 +53,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('--epoch-size', default=1000, type=int, metavar='N',
                     help='manual epoch size (will match dataset size if set to 0)')
-parser.add_argument('-b', '--batch-size', default=8, type=int,
+parser.add_argument('-b', '--batch-size', default=32, type=int,
                     metavar='N', help='mini-batch size')
 parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
                     metavar='LR', help='initial learning rate')
@@ -72,9 +68,6 @@ parser.add_argument('--bias-decay', default=0, type=float,
 parser.add_argument('--multiscale-weights', '-w', default=[0.005,0.01,0.02,0.08,0.32], type=float, nargs=5,
                     help='training weight for each scale, from highest resolution (flow2) to lowest (flow6)',
                     metavar=('W2', 'W3', 'W4', 'W5', 'W6'))
-parser.add_argument('--sparse', action='store_true',
-                    help='look for NaNs in target flow when computing EPE, avoid if flow is garantied to be dense,'
-                    'automatically seleted when choosing a KITTIdataset')
 parser.add_argument('--print-freq', '-p', default=10, type=int,
                     metavar='N', help='print frequency')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
@@ -126,8 +119,8 @@ def main():
 
 ## --------------------- loading and concatinating the data --------------------- ##
 
-    print(f"=> fetching image pairs in {args.data}") 
-    train_set, val_set = Transformed_data("../labeled", transform=input_transform, split = args.split_file if args.split_file else args.split_value)
+    print(f"=> fetching image pairs from {args.data}") 
+    train_set, val_set = Transformed_data(args.data, transform=input_transform, split = args.split_value)
 
     print(f"{len(test_set) + len(train_set)} samples found, {len(train_set)} train samples and {len(test_set)} test samples")
 
