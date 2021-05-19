@@ -95,23 +95,55 @@ class RandomTranslate(object):
 
 ## ---------------- Make Dataset --> [[img1, img2], [yaw, pitch]] ---------------- ##
 
-def DATA_LOADER(self, root, transform, split):        
-    #self.transform = transforms.Compose(transform)
+class ListDataset(data.Dataset):
+    def __init__(self, root, path_list, transform=None):
 
+        self.root = root
+        self.path_list = path_list
+        self.transform = transform
+
+    def __getitem__(self, index):
+        inputs, target = self.path_list[index]
+
+        if self.transform is not None:
+            inputs[0] = self.transform(inputs[0])
+            inputs[1] = self.transform(inputs[1])
+
+        return inputs, target
+
+    def __len__(self):
+        return len(self.path_list)
+
+def DATA_LOADER(self, root, split):        
     img_data = []
     for i in range(1,mode+1):
         input_img = (glob.glob(os.path.join(root, "%s" % i) + '/*.jpg'))
         target_num = (glob.glob(os.path.join("../labeled") + f'/{i}.txt'))
-        lis = []
+        drive_img = []
 
         for i in range(len(input_img)):
             w = open(target_num[0],'r')
-            lis.append(w.read())
-            lis = lis[0].split("\n")
-            yaw, pitch = lis[i].split(" ")
+            drive_img.append(w.read())
+            drive_img = drive_img[0].split("\n")
+            yaw, pitch = drive_img[i].split(" ")
             img_data.append([[ input_img[i], input_img[i+1] ], [ float(yaw), float(pitch) ]])
 
-    return img_data
+    split = split * len(img_data)
+    train, test = [], []
+    for sample in range( split*len(img_data) ):
+        train.append(sample)
+    for sample in range( split*len(img_data), len(img_data) ):
+        test.append(sample)
+
+    return train, test
+
+def Transformed_data(root, transform=None, split=None):
+    train, test = DATA_LOADER(root, split)
+    train_dataset = List_Dataset(root, train, transform )
+    test_dataset = List_Dataset(root, test, transform )
+
+    return train_dataset, test_dataset
+
 
 ## ---------------- Buy new RAM! I have to break stuff into images and save them ---------------- ##
 
