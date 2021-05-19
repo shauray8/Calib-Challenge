@@ -92,19 +92,20 @@ class RandomTranslate(object):
 
         return inputs, target
 
-class DATA_LOADER(object):
-    def __init__(self, root, transform, split):        
-        #self.transform = transforms.Compose(transform)
 
-        self.img_Data = []
-        for i in range(1,mode+1):
-            self.input_img = (glob.glob(os.path.join(root, "%s" % i) + '/*.jpg'))
+## ---------------- Make Dataset --> [[img1, img2], [yaw, pitch]] ---------------- ##
 
-            for i in range(len(self.input_img)):
-                self.img_data += torch.cat((torch.tensor(self.data[i]), torch.tensor(self.data[i+1])), 1)
+def DATA_LOADER(self, root, transform, split):        
+    #self.transform = transforms.Compose(transform)
 
-        self.target_num = (glob.glob(os.path.join("../labeled") + '/*.txt'))
-        
+    self.img_Data = []
+    for i in range(1,mode+1):
+        self.input_img = (glob.glob(os.path.join(root, "%s" % i) + '/*.jpg'))
+        self.target_num = (glob.glob(os.path.join("../labeled") + f'/{i}.txt'))
+
+        for i in range(len(self.input_img)):
+            self.img_data += torch.cat((torch.tensor(self.data[i]), torch.tensor(self.data[i+1])), 1)
+
 
 ## ---------------- Buy new RAM! I have to break stuff into images and save them ---------------- ##
 
