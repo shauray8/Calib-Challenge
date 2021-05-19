@@ -104,6 +104,8 @@ class DATA_LOADER(object):
         #for i in range(len(self.data)):
         #img_data = torch.concatenate(self.data[i], self.data[i+1])
 
+## ---------------- Buy new RAM! I have to break stuff into images and save them ---------------- ##
+
 def frame_by_frame(input):
     frames = []
     for j in input:
@@ -122,7 +124,23 @@ def frame_by_frame(input):
         print("inner",len(frames))
         final_images = [torch.cat((torch.tensor(frames[i]), torch.tensor(frames[i+1])), 1) for i in range(len(frames))]
     print(len(final_image))
-    return "nothing"
+    return final_image
+
+## ---------------- This thing is no good but for now i dont think i have a better idea ---------------- ##
+
+def break_into_images():
+    input_vid = sorted(glob.glob(os.path.join('../labeled') + '/*.HEVC'))
+    folder = 0
+    for i in input_vid:
+        folder += 1
+        vidcap = cv2.VideoCapture(i)
+        success,image = vidcap.read()
+        count = 0
+        while success:
+          cv2.imwrite(f"../data/{folder}/frame%d.jpg" % count, image)     # save frame as JPEG file      
+          success,image = vidcap.read()
+          print('Read a new frame: ', success)
+          count += 1
 
 def save_checkpoint(state, is_best, save_path, filename='checkpoint.pth.tar'):
     torch.save(state, os.path.join(save_path,filename))
@@ -186,4 +204,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     #show(args.data)
     #frame_by_frame('../labeled/2.hevc')
-    DATA_LOADER("../labeled", "Transform", 22).frame_by_frame
+    #DATA_LOADER("../labeled", "Transform", 22).frame_by_frame
+    break_into_images()
