@@ -98,14 +98,20 @@ class RandomTranslate(object):
 def DATA_LOADER(self, root, transform, split):        
     #self.transform = transforms.Compose(transform)
 
-    self.img_Data = []
+    img_data = []
     for i in range(1,mode+1):
-        self.input_img = (glob.glob(os.path.join(root, "%s" % i) + '/*.jpg'))
-        self.target_num = (glob.glob(os.path.join("../labeled") + f'/{i}.txt'))
+        input_img = (glob.glob(os.path.join(root, "%s" % i) + '/*.jpg'))
+        target_num = (glob.glob(os.path.join("../labeled") + f'/{i}.txt'))
+        lis = []
 
-        for i in range(len(self.input_img)):
-            self.img_data += torch.cat((torch.tensor(self.data[i]), torch.tensor(self.data[i+1])), 1)
+        for i in range(len(input_img)):
+            w = open(target_num[0],'r')
+            lis.append(w.read())
+            lis = lis[0].split("\n")
+            yaw, pitch = lis[i].split(" ")
+            img_data.append([[ input_img[i], input_img[i+1] ], [ float(yaw), float(pitch) ]])
 
+    return img_data
 
 ## ---------------- Buy new RAM! I have to break stuff into images and save them ---------------- ##
 
@@ -208,4 +214,4 @@ if __name__ == "__main__":
     #show(args.data)
     #frame_by_frame('../labeled/2.hevc')
     #DATA_LOADER("../labeled", "Transform", 22).frame_by_frame
-    break_into_images()
+    #break_into_images()
