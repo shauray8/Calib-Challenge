@@ -63,21 +63,6 @@ def show(data):
     cv2.destroyAllWindows()
 
 
-def frame_by_frame(input):
-    frames = []
-    for i in input:
-        cap= cv2.VideoCapture(input)
-        i=0
-        while(cap.isOpened()):
-            ret, frame = cap.read()
-            if ret == False:
-                break
-            frames.append(frame)
-            i+=1
- 
-        cap.release()
-        cv2.destroyAllWindows()
-    return torch.tensor(frames)
 
 ## ---------------- For FlowNetCorr ---------------- ##
 
@@ -107,13 +92,6 @@ class RandomTranslate(object):
 
         return inputs, target
 
-
-def save_checkpoint(state, is_best, save_path, filename='checkpoint.pth.tar'):
-    torch.save(state, os.path.join(save_path,filename))
-    if is_best:
-        shutil.copyfile(os.path.join(save_path,filename), os.path.join(save_path,'model_best.pth.tar'))
-
-
 class DATA_LOADER(object):
     def __init__(self, root, transform, split):        
         self.transform = transforms.Compose(transform)
@@ -127,6 +105,27 @@ class DATA_LOADER(object):
         for i in range(len(self.data)):
             img_data = torch.concatenate(self.data[i], self.data[i+1])
 
+    @staticmethod
+    def frame_by_frame(input):
+        frames = []
+        for i in input:
+            cap= cv2.VideoCapture(input)
+            i=0
+            while(cap.isOpened()):
+                ret, frame = cap.read()
+                if ret == False:
+                    break
+                frames.append(frame)
+                i+=1
+     
+            cap.release()
+            cv2.destroyAllWindows()
+        return torch.tensor(frames)
+
+def save_checkpoint(state, is_best, save_path, filename='checkpoint.pth.tar'):
+    torch.save(state, os.path.join(save_path,filename))
+    if is_best:
+        shutil.copyfile(os.path.join(save_path,filename), os.path.join(save_path,'model_best.pth.tar'))
 
 ## ---------------- For Global Motion Aggregation ---------------- ##
 
