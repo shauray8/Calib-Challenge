@@ -40,7 +40,15 @@ class FlowNet(nn.Module):
         self.upsampled_flow4_to_3 = nn.ConvTranspose2d(2, 2, 4, 2, 1, bias=False)
         self.upsampled_flow3_to_2 = nn.ConvTranspose2d(2, 2, 4, 2, 1, bias=False)
 
-        self.lastblock = [nn.Flatten(),
+        self.yaw_block = [nn.Flatten(),
+            nn.Linear(136*320, 1000),
+            nn.Linear(1000, 640),
+            nn.Linear(640, 320),
+            nn.Linear(320, 160),
+            nn.linear(160, 70),
+            ]
+
+        self.pitch_block = [nn.Flatten(),
             nn.Linear(136*320, 1000),
             nn.Linear(1000, 640),
             nn.Linear(640, 320),
@@ -111,7 +119,7 @@ class FlowNet(nn.Module):
         flow2 = self.flow2(concat2)
 
 ## --------------------- Returning the last block containing Linear Layers --------------------- ##
-        return self.lastblock(flow2)
+        return self.yaw_block(flow2), self.pitch_block(flow2)
 
         if self.training:
             return flow2,flow3,flow4,flow5,flow6

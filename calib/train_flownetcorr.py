@@ -1,3 +1,5 @@
+## -------------------- Imports -------------------- ##
+
 import argparse
 import os
 import time
@@ -125,7 +127,7 @@ def main():
 ## --------------------- loading and concatinating the data --------------------- ##
 
     print(f"=> fetching image pairs in {args.data}") 
-    train_set, val_set = LOAD_DATA("../labeled", transform=input_transform, split = args.split_file if args.split_file else args.split_value)
+    train_set, val_set = Transformed_data("../labeled", transform=input_transform, split = args.split_file if args.split_file else args.split_value)
 
     print(f"{len(test_set) + len(train_set)} samples found, {len(train_set)} train samples and {len(test_set)} test samples")
 
@@ -172,7 +174,8 @@ def main():
 
     scheduler = torch.optim.lr_scheduler.MultiStepLr(optimizer, milestones=args.milestone, gamma=.5)
 
-    loss_function = nn.MSELoss()
+    yaw_loss = nn.MSELoss()
+    pitch_loss = nn.MSELoss()
 
 ## --------------------- Training Loop --------------------- ##
 
@@ -180,13 +183,13 @@ def main():
         scheduler.step()
 
         avg_loss_MSE, train_Loss_MSE, display = train(train_loader, model,
-                optimizer, epoch, train_writer, loss_function)
+                optimizer, epoch, train_writer, yaw_loss, pitch_loss)
         train_writer.add_scalar('mean MSE', avg_loss_MSE, epoch)
 
 ## --------------------- Validation Step --------------------- ##
 
         with torch.no_grad():
-            MSE_loss_val, display_val = validation(val_loader, model, epoch, output_writers, loss_function)
+            MSE_loss_val, display_val = validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss)
         test_writer.add_scalar('mean MSE', MSE_loss_val, epoch)
 
         if best_MSE < 0:
@@ -207,7 +210,7 @@ def main():
 
 ## --------------------- TRAIN function for the training loop --------------------- ##
 
-def train(train_loader, model, optimizer, epoch, train_writer, loss_function):
+def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_loss):
     global n_iters, args
 
     epoch_size = len(train_loader) if args.epoch_size == 0 else min(len(train_loader), args.epoch_size)
@@ -223,13 +226,11 @@ def train(train_loader, model, optimizer, epoch, train_writer, loss_function):
         target = target.to(device)
         input = torch.cat(input,1).to(device)
 
-        output = model(input)
-        if args.sparse:
-            h, w = target.size()[-2:]
-            output = [F.interpolate(output[0], (h,w)), *output[1:]]
+        pred_yaw, pred_pitch = model(input)
 
-        
-        loss = loss_function(output, target)
+        yaw_MSE = yaw_loss(pred_yaw, target[0])
+        pitch_MSE = pitch_loss(pred_pitch, target[1])
+        loss = yaw_MSE + pitch_MSE
 
         losses.append(float(loss.item()))
         train_writer.add_scalar('train_loss', loss.item(), n_inter)
@@ -253,7 +254,7 @@ def train(train_loader, model, optimizer, epoch, train_writer, loss_function):
 
     return losses.avg, loss.item(), display
 
-def validation(val_loader, model, epoch, output_writers, loss_function):
+def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
     global args
 
     model.eval()
@@ -268,13 +269,13 @@ def validation(val_loader, model, epoch, output_writers, loss_function):
 
         end = time.time()
 
-        if i < len(output_writers):
-            if epoch == 0:
-                mean_values = torch.tensor([0.45,0.432,0.411], dtype=input.dtype).view(3,1,1)
-                output_writers[i].add_image('GroundTruth', flow2rgb(args.div_flow * target[0], max_value=10), 0)
-                output_writers[i].add_image('Inputs', (input[0,:3].cpu() + mean_values).clamp(0,1), 0)
-                output_writers[i].add_image('Inputs', (input[0,3:].cpu() + mean_values).clamp(0,1), 1)
-            output_writers[i].add_image('FlowNet Outputs', flow2rgb(args.div_flow * output[0], max_value=10), epoch)
+       # if i < len(output_writers):
+       #     if epoch == 0:
+       #         mean_values = torch.tensor([0.45,0.432,0.411], dtype=input.dtype).view(3,1,1)
+       #         output_writers[i].add_image('GroundTruth', flow2rgb(args.div_flow * target[0], max_value=10), 0)
+       #         output_writers[i].add_image('Inputs', (input[0,:3].cpu() + mean_values).clamp(0,1), 0)
+       #         output_writers[i].add_image('Inputs', (input[0,3:].cpu() + mean_values).clamp(0,1), 1)
+       #     output_writers[i].add_image('FlowNet Outputs', flow2rgb(args.div_flow * output[0], max_value=10), epoch)
 
         if i % args.print_freq == 0:
             display_val = 'Test: [{0}/{1}] ; Loss {2}'
@@ -282,6 +283,5 @@ def validation(val_loader, model, epoch, output_writers, loss_function):
 
     return loss.item(), display_val
         
-
 if __name__ == "__main__":
     main()
