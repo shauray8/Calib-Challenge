@@ -96,13 +96,15 @@ class DATA_LOADER(object):
     def __init__(self, root, transform, split):        
         #self.transform = transforms.Compose(transform)
 
-        self.input_vid = sorted(glob.glob(os.path.join(root) + '/1.HEVC'))
-        self.target_num = sorted(glob.glob(os.path.join(root) + '/*.txt'))
+        self.img_Data = []
+        for i in range(1,mode+1):
+            self.input_img = (glob.glob(os.path.join(root, "%s" % i) + '/*.jpg'))
+
+            for i in range(len(self.input_img)):
+                self.img_data += torch.cat((torch.tensor(self.data[i]), torch.tensor(self.data[i+1])), 1)
+
+        self.target_num = (glob.glob(os.path.join("../labeled") + '/*.txt'))
         
-        self.data = frame_by_frame(self.input_vid)
-    
-        #for i in range(len(self.data)):
-        #img_data = torch.concatenate(self.data[i], self.data[i+1])
 
 ## ---------------- Buy new RAM! I have to break stuff into images and save them ---------------- ##
 
