@@ -4,6 +4,8 @@ import cv2
 import os, glob
 import torch
 import shutil
+from PIL import Image
+from imageio import imread
 
 import random
 import numpy as np
@@ -94,6 +96,8 @@ class RandomTranslate(object):
 
 
 ## ---------------- Make Dataset --> [[img1, img2], [yaw, pitch]] ---------------- ##
+def loader(path_imgs, target):
+    return [np.asarray((plt.imread(img)), dtype=np.float32) for img in path_imgs], target
 
 class ListDataset(Dataset):
     def __init__(self, root, path_list, transform=None):
@@ -103,7 +107,9 @@ class ListDataset(Dataset):
         self.transform = transform
 
     def __getitem__(self, index):
+        
         inputs, target = self.path_list[index]
+        inputs, target = loader(inputs, target)
 
         if self.transform is not None:
             inputs[0] = self.transform(inputs[0])
@@ -127,14 +133,13 @@ def DATA_LOADER(root, split):
         drive_img = drive_img[0].split("\n")
         for i in range(len(input_img)-1):
             yaw, pitch = drive_img[i].split(" ")
-            img_data.append([[ input_img[i], input_img[i+1] ], [ float(yaw), float(pitch) ]])
+            img_data.append([[ input_img[i], input_img[i+1] ], [float(yaw), float(pitch)] ])
 
-    split = split * len(img_data)
     train, test = [], []
     for sample in range( int(split*len(img_data)) ):
-        train.append(sample)
+        train.append(img_data[sample])
     for sample in range( int(split*len(img_data)), len(img_data) ):
-        test.append(sample)
+        test.append(img_data[sample])
 
     return train, test
 

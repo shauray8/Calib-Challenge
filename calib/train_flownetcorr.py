@@ -3,6 +3,8 @@
 import argparse
 import os
 import time
+import numpy as np
+from tqdm import trange
 
 import torch
 import torch.nn.functional as F
@@ -44,7 +46,7 @@ parser.add_argument('--arch', '-a', metavar='ARCH', default='flownetc',
                     choices=callable,)
 parser.add_argument('--solver', default='adam',choices=['adam','sgd'],
                     help='solver algorithms')
-parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers')
 parser.add_argument('--epochs', default=300, type=int, metavar='N',
                     help='number of total epochs to run')
@@ -108,12 +110,12 @@ def main():
 
     input_transform = transforms.Compose([
             #RandomTranslate(10),
-            transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
-            transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
-            transforms.RandomGrayscale(p=0.1),
-            transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
-            transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
+            #transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
+            #transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
+            #transforms.RandomGrayscale(p=0.1),
             transforms.ToTensor(),
+            #transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
+            #transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
         ])
 
 ## --------------------- loading and concatinating the data --------------------- ##
@@ -121,7 +123,7 @@ def main():
     print(f"=> fetching image pairs from {args.data}") 
     train_set, test_set = Transformed_data(args.data, transform=input_transform, split = args.split_value)
 
-    print(f"{len(test_set) + len(train_set)} samples found, {len(train_set)} train samples and {len(test_set)} test samples")
+    print(f"=> {len(test_set) + len(train_set)} samples found, {len(train_set)} train samples and {len(test_set)} test samples")
 
     train_loader = DataLoader(
             train_set, batch_size = args.batch_size, num_workers=args.workers,
@@ -148,7 +150,7 @@ def main():
         print("=> enter a supported optimizer")
         return 
     
-    print(f'=> settting {args.solver} solver')
+    print(f'=> settting {args.solver} optimizer')
     param_groups = [{'params': model.bias_parameters(), 'weight_decay': args.bias_decay},
             {'params': model.weight_parameters(), 'weight_decay': args.weight_decay}]
 
@@ -156,7 +158,7 @@ def main():
         model = torch.nn.DataParallel(model).cuda()
         cudnn.benchmark = True
     
-    optimizer = torch.optim.Adam(param_groups, args.lr, betas=(args.mometum, args.beta)) if args.solver == 'adam' else torch.optim.SGD(param_groups, args.lr, momentum=args.momentum)
+    optimizer = torch.optim.Adam(param_groups, args.lr, betas=(args.momentum, args.beta)) if args.solver == 'adam' else torch.optim.SGD(param_groups, args.lr, momentum=args.momentum)
     
     if args.evaluate:
         best_MSE = validation(val_loader, model, 0, output_writers, loss_function)
@@ -164,18 +166,19 @@ def main():
 
 ## --------------------- Scheduler and Loss Function --------------------- ##
 
-    scheduler = torch.optim.lr_scheduler.MultiStepLr(optimizer, milestones=args.milestone, gamma=.5)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.milestones, gamma=.5)
 
     yaw_loss = nn.MSELoss()
     pitch_loss = nn.MSELoss()
 
 ## --------------------- Training Loop --------------------- ##
 
-    for epoch in range(args.start_epoch, args.epochs):
-        scheduler.step()
+    for epoch in trange(args.start_epoch, args.epochs):
 
         avg_loss_MSE, train_Loss_MSE, display = train(train_loader, model,
                 optimizer, epoch, train_writer, yaw_loss, pitch_loss)
+        
+        scheduler.step()
         train_writer.add_scalar('mean MSE', avg_loss_MSE, epoch)
 
 ## --------------------- Validation Step --------------------- ##
@@ -215,7 +218,7 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 
     for i, (input, target) in enumerate(train_loader):
         start_time = time.time()
-        target = target.to(device)
+        target = target
         input = torch.cat(input,1).to(device)
 
         pred_yaw, pred_pitch = model(input)
