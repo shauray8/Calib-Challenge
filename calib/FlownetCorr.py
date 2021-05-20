@@ -17,6 +17,8 @@ class FlowNet(nn.Module):
         self.conv3 = self.ConvBlock(self.batchnorm, 128, 256, kernel_size=5, stride=2)
         self.conv_redir = self.ConvBlock(self.batchnorm, 256, 32, kernel_size=1, stride=1)
 
+        self.conv_correlate = self.ConvBlock(self.batchnorm, 256, 441, kernel_size=1, stride=1)
+
         self.conv3_1 = self.ConvBlock(self.batchnorm, 473, 256)
         self.conv4 = self.ConvBlock(self.batchnorm, 256, 512, stride=2)
         self.conv4_1 = self.ConvBlock(self.batchnorm, 512, 512)
@@ -41,21 +43,21 @@ class FlowNet(nn.Module):
         self.upsampled_flow4_to_3 = nn.ConvTranspose2d(2, 2, 4, 2, 1, bias=False)
         self.upsampled_flow3_to_2 = nn.ConvTranspose2d(2, 2, 4, 2, 1, bias=False)
 
-        self.yaw_block = [nn.Flatten(),
-            nn.Linear(136*320, 1000),
+        self.yaw_block = nn.Sequential(nn.Flatten(),
+            nn.Linear(8*192*64*64, 1000),
             nn.Linear(1000, 640),
             nn.Linear(640, 320),
             nn.Linear(320, 160),
             nn.Linear(160, 70),
-            ]
+            )
 
-        self.pitch_block = [nn.Flatten(),
-            nn.Linear(136*320, 1000),
+        self.pitch_block = nn.Sequential(nn.Flatten(),
+            nn.Linear(8*192*64*64, 1000),
             nn.Linear(1000, 640),
             nn.Linear(640, 320),
             nn.Linear(320, 160),
             nn.Linear(160, 70),
-            ]
+            )
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
@@ -90,7 +92,9 @@ class FlowNet(nn.Module):
         return nn.Conv2d(in_channels,2,kernel_size=3,stride=1,padding=1,bias=False)
 
     def correlate(self, fmap1, fmap2):
-        return CorrBlock(fmap1, fmap2)
+        correlation = CorrBlock(fmap1, fmap2)
+        print(correlation())
+        return correlation()
 
     def ConvTrans(self, in_channels, out_channels):
         return nn.Sequential(
@@ -120,13 +124,14 @@ class FlowNet(nn.Module):
         out_conv3b = self.conv3(out_conv2b)
 
         out_conv_redir = self.conv_redir(out_conv3a)
+        out_conv_correlate_b = self.conv_correlate(out_conv3b)
 
 ## --------------------- I don't think the corr block will work --------------------- ##
 ## --------------------- If not i will change it a tiny bit--------------------- ##
 
-        out_correlation = correlate(out_conv3a,out_conv3b)
+        #out_correlation = self.correlate(out_conv3a,out_conv3b)
 
-        in_conv3_1 = torch.cat([out_conv_redir, out_correlation], dim=1)
+        in_conv3_1 = torch.cat([out_conv_redir, out_conv_correlate_b], dim=1)
 
         out_conv3 = self.conv3_1(in_conv3_1)
         out_conv4 = self.conv4_1(self.conv4(out_conv3))
@@ -156,9 +161,11 @@ class FlowNet(nn.Module):
 
         concat2 = torch.cat((out_conv2a,out_ConvTrans2,flow3_up),1)
         flow2 = self.flow2(concat2)
+        
+        print(concat2.shape)
 
 ## --------------------- Returning the last block containing Linear Layers --------------------- ##
-        return self.yaw_block(flow2), self.pitch_block(flow2)
+        return self.yaw_block(concat2), self.pitch_block(concat2)
 
 
 def flownetc(data=None):

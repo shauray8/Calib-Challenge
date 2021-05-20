@@ -9,9 +9,9 @@ from tqdm import trange
 import torch
 import torch.nn.functional as F
 import torch.nn.parallel
-import torch.backends.cudnn as cudnn
 import torch.optim
 import torch.utils.data
+import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
 import datetime
 from torch.utils.data import DataLoader, Dataset
@@ -46,7 +46,7 @@ parser.add_argument('--arch', '-a', metavar='ARCH', default='flownetc',
                     choices=callable,)
 parser.add_argument('--solver', default='adam',choices=['adam','sgd'],
                     help='solver algorithms')
-parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=2, type=int, metavar='N',
                     help='number of data loading workers')
 parser.add_argument('--epochs', default=300, type=int, metavar='N',
                     help='number of total epochs to run')
@@ -54,7 +54,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('--epoch-size', default=1000, type=int, metavar='N',
                     help='manual epoch size (will match dataset size if set to 0)')
-parser.add_argument('-b', '--batch-size', default=32, type=int,
+parser.add_argument('-b', '--batch-size', default=8, type=int,
                     metavar='N', help='mini-batch size')
 parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
                     metavar='LR', help='initial learning rate')
@@ -85,7 +85,8 @@ parser.add_argument('--milestones', default=[100,150,200], metavar='N', nargs='*
 
 best_MSE = -1
 n_iter = 0
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
 def main():
     global args, best_MSE
@@ -109,6 +110,7 @@ def main():
 ## --------------------- transforming the data --------------------- ##
 
     input_transform = transforms.Compose([
+            transforms.Resize((256, 256)),
             #RandomTranslate(10),
             #transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
             #transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
@@ -221,6 +223,7 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
         target = target
         input = torch.cat(input,1).to(device)
 
+        print("=> training on batch")
         pred_yaw, pred_pitch = model(input)
 
         yaw_MSE = yaw_loss(pred_yaw, target[0])
@@ -277,4 +280,5 @@ def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
     return loss.item(), display_val
         
 if __name__ == "__main__":
+    torch.cuda.empty_cache()
     main()

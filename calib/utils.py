@@ -97,7 +97,8 @@ class RandomTranslate(object):
 
 ## ---------------- Make Dataset --> [[img1, img2], [yaw, pitch]] ---------------- ##
 def loader(path_imgs, target):
-    return [np.asarray((plt.imread(img)), dtype=np.float32) for img in path_imgs], target
+    #return [np.array((Image.open(img)), dtype=np.float64) for img in path_imgs], target
+    return [(Image.open(img)) for img in path_imgs], target
 
 class ListDataset(Dataset):
     def __init__(self, root, path_list, transform=None):
