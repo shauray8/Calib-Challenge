@@ -88,12 +88,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def main():
     global args, best_MSE
     args = parser.parse_args()
-    save_path = f'{args.arch},{args.solver},{args.epochs},bs{args.batch_size},lr{args.lr}'
+    save_path = f'{args.arch}_{args.solver}_{args.epochs}_bs{args.batch_size}_lr{args.lr}'
         
     if not args.no_date:
         timestamp = datetime.datetime.now().strftime("%m-%d-%H:%M")
-        save_path = os.path.join("./pretrained/flownetcorr", save_path)
-    save_path = os.path.join("./pretrained/flownetcorr", save_path)
+        save_path = os.path.join(save_path)
+    save_path = os.path.join("./pretrained/", save_path)
     print(f"=> will save everything to {save_path}")
     if not os.path.exists(save_path):
         os.makedirs(save_path)
@@ -139,11 +139,11 @@ def main():
         print(f"=> creating model {args.arch}")
     else:
         network_data = None
-        print(f"=> using pre_trained model {args.arch}")
+        print(f"=> No pretrained weights ")
 
 ## --------------------- Checking and selecting a optimizer [SGD, ADAM] --------------------- ##
 
-    model = flownetc.__dict__[args.arch](network_data).to(device)
+    model = flownetc().to(device)
     if args.solver not in ['adam', 'sgd']:
         print("=> enter a supported optimizer")
         return 
@@ -156,7 +156,7 @@ def main():
         model = torch.nn.DataParallel(model).cuda()
         cudnn.benchmark = True
     
-    optimizer = torch.optim.Adam(param_groups, args.lr, betas=(args.mometum, args.beta)) if arg.solver == 'adam' else torch.optim.SGD(param_groups, args.lr, momentum=args.momentum)
+    optimizer = torch.optim.Adam(param_groups, args.lr, betas=(args.mometum, args.beta)) if args.solver == 'adam' else torch.optim.SGD(param_groups, args.lr, momentum=args.momentum)
     
     if args.evaluate:
         best_MSE = validation(val_loader, model, 0, output_writers, loss_function)

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import torch.nn.functional as F
+from torch.nn.init import kaiming_normal_, constant_
 from corr import CorrBlock
 
 class FlowNet(nn.Module):
@@ -10,30 +11,30 @@ class FlowNet(nn.Module):
 ## --------------------- Illustration of the whole arch in the README --------------------- ##
 
         self.batchnorm = bn
+        
+        self.conv1 = self.ConvBlock(self.batchnorm, 3, 64, kernel_size=7, stride=2)
+        self.conv2 = self.ConvBlock(self.batchnorm, 64, 128, kernel_size=5, stride=2)
+        self.conv3 = self.ConvBlock(self.batchnorm, 128, 256, kernel_size=5, stride=2)
+        self.conv_redir = self.ConvBlock(self.batchnorm, 256, 32, kernel_size=1, stride=1)
 
-        self.conv1 = ConvBlock(self.batchnorm, 3, 64, kernel_size=7, stride=2)
-        self.conv2 = ConvBlock(self.batchnorm, 64, 128, kernel_size=5, stride=2)
-        self.conv3 = ConvBlock(self.batchnorm, 128, 256, kernel_size=5, stride=2)
-        self.conv_redir = ConvBlock(self.batchnorm, 256, 32, kernel_size=1, stride=1)
+        self.conv3_1 = self.ConvBlock(self.batchnorm, 473, 256)
+        self.conv4 = self.ConvBlock(self.batchnorm, 256, 512, stride=2)
+        self.conv4_1 = self.ConvBlock(self.batchnorm, 512, 512)
+        self.conv5 = self.ConvBlock(self.batchnorm, 512, 512)
+        self.conv5_1 = self.ConvBlock(self.batchnorm, 512, 512)
+        self.conv6 = self.ConvBlock(self.batchnorm, 512, 1024, stride=2)
+        self.conv6_1 = self.ConvBlock(self.batchnorm, 1024, 1024)
 
-        self.conv3_1 = ConvBlock(self.batchnorm, 473, 256)
-        self.conv4 = ConvBlock(self.batchnorm, 256, 512, stride=2)
-        self.conv4_1 = ConvBlock(self.batchnorm, 512, 512)
-        self.conv5 = ConvBlock(self.batchnorm, 512, 512)
-        self.conv5_1 = ConvBlock(self.batchnorm, 512, 512)
-        self.conv6 = ConvBlock(self.batchnorm, 512, 1024, stride=2)
-        self.conv6_1 = ConvBlock(self.batchnorm, 1024, 1024)
+        self.ConvTrans5 = self.ConvTrans(1024,512)
+        self.ConvTrans4 = self.ConvTrans(1026,256)
+        self.ConvTrans3 = self.ConvTrans(770,128)
+        self.ConvTrans2 = self.ConvTrans(386,64)
 
-        self.ConvTrans5 = ConvTrans(1024,512)
-        self.ConvTrans4 = ConvTrans(1026,256)
-        self.ConvTrans3 = ConvTrans(770,128)
-        self.ConvTrans2 = ConvTrans(386,64)
-
-        self.flow6 = flow(1024)
-        self.flow5 = flow(1026)
-        self.flow4 = flow(770)
-        self.flow3 = flow(386)
-        self.flow2 = flow(194)
+        self.flow6 = self.flow(1024)
+        self.flow5 = self.flow(1026)
+        self.flow4 = self.flow(770)
+        self.flow3 = self.flow(386)
+        self.flow2 = self.flow(194)
 
         self.upsampled_flow6_to_5 = nn.ConvTranspose2d(2, 2, 4, 2, 1, bias=False)
         self.upsampled_flow5_to_4 = nn.ConvTranspose2d(2, 2, 4, 2, 1, bias=False)
@@ -45,7 +46,7 @@ class FlowNet(nn.Module):
             nn.Linear(1000, 640),
             nn.Linear(640, 320),
             nn.Linear(320, 160),
-            nn.linear(160, 70),
+            nn.Linear(160, 70),
             ]
 
         self.pitch_block = [nn.Flatten(),
@@ -53,7 +54,7 @@ class FlowNet(nn.Module):
             nn.Linear(1000, 640),
             nn.Linear(640, 320),
             nn.Linear(320, 160),
-            nn.linear(160, 70),
+            nn.Linear(160, 70),
             ]
 
         for m in self.modules():
@@ -65,6 +66,44 @@ class FlowNet(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 constant_(m.weight, 1)
                 constant_(m.bias, 0)
+
+    def weight_parameters(self):
+        return [param for name, param in self.named_parameters() if 'weight' in name]
+
+    def bias_parameters(self):
+        return [param for name, param in self.named_parameters() if 'bias' in name]
+
+    def ConvBlock(self, batchnorm, in_channels, out_channels, kernel_size=3, stride=1):
+        if batchnorm:
+            return nn.Sequential(
+                        nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=(kernel-1)//2, bias=False),
+                        nn.BatchNorm2d(out_channels),
+                        nn.LeakyReLU(0.1,inplace=True)
+                    )
+        else:
+            return nn.Sequential(
+                    nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=(kernel_size-1)//2, bias=True),
+                    nn.LeakyReLU(.1, inplace=True)
+                    )
+
+    def flow(self, in_channels):
+        return nn.Conv2d(in_channels,2,kernel_size=3,stride=1,padding=1,bias=False)
+
+    def correlate(self, fmap1, fmap2):
+        return CorrBlock(fmap1, fmap2)
+
+    def ConvTrans(self, in_channels, out_channels):
+        return nn.Sequential(
+            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.LeakyReLU(0.1,inplace=True)
+        )
+
+    def crop_like(self, input, target):
+        if input.size()[2:] == target.size()[2:]:
+            return input
+        else:
+            return input[:, :, :target.size(2), :target.size(3)]
+
 
     def forward(self, x):
 ## --------------------- seperating both the images --------------------- ##
@@ -97,71 +136,29 @@ class FlowNet(nn.Module):
 ## --------------------- FLOWS and CONCATENATIONS --------------------- ##
 
         flow6       = self.flow6(out_conv6)
-        flow6_up    = crop_like(self.upsampled_flow6_to_5(flow6), out_conv5)
-        out_ConvTrans5 = crop_like(self.ConvTrans5(out_conv6), out_conv5)
+        flow6_up    = self.crop_like(self.upsampled_flow6_to_5(flow6), out_conv5)
+        out_ConvTrans5 = self.crop_like(self.ConvTrans5(out_conv6), out_conv5)
 
         concat5 = torch.cat((out_conv5,out_ConvTrans5,flow6_up),1)
         flow5       = self.flow5(concat5)
-        flow5_up    = crop_like(self.upsampled_flow5_to_4(flow5), out_conv4)
-        out_ConvTrans4 = crop_like(self.ConvTrans4(concat5), out_conv4)
+        flow5_up    = self.crop_like(self.upsampled_flow5_to_4(flow5), out_conv4)
+        out_ConvTrans4 = self.crop_like(self.ConvTrans4(concat5), out_conv4)
 
         concat4 = torch.cat((out_conv4,out_ConvTrans4,flow5_up),1)
         flow4       = self.flow4(concat4)
-        flow4_up    = crop_like(self.upsampled_flow4_to_3(flow4), out_conv3)
-        out_ConvTrans3 = crop_like(self.ConvTrans3(concat4), out_conv3)
+        flow4_up    = self.crop_like(self.upsampled_flow4_to_3(flow4), out_conv3)
+        out_ConvTrans3 = self.crop_like(self.ConvTrans3(concat4), out_conv3)
 
         concat3 = torch.cat((out_conv3,out_ConvTrans3,flow4_up),1)
         flow3       = self.flow3(concat3)
-        flow3_up    = crop_like(self.upsampled_flow3_to_2(flow3), out_conv2a)
-        out_ConvTrans2 = crop_like(self.ConvTrans2(concat3), out_conv2a)
+        flow3_up    = self.crop_like(self.upsampled_flow3_to_2(flow3), out_conv2a)
+        out_ConvTrans2 = self.crop_like(self.ConvTrans2(concat3), out_conv2a)
 
         concat2 = torch.cat((out_conv2a,out_ConvTrans2,flow3_up),1)
         flow2 = self.flow2(concat2)
 
 ## --------------------- Returning the last block containing Linear Layers --------------------- ##
         return self.yaw_block(flow2), self.pitch_block(flow2)
-
-        if self.training:
-            return flow2,flow3,flow4,flow5,flow6
-        else:
-            return flow2
-
-    def weight_parameters(self):
-        return [param for name, param in self.named_parameters() if 'weight' in name]
-
-    def bias_parameters(self):
-        return [param for name, param in self.named_parameters() if 'bias' in name]
-
-    def ConvBlock(self, batchnorm, in_channels, out_channels, kernel=3, stride=1):
-        if batchnorm:
-            return nn.Sequential(
-                        nn.Conv2d(in_channels, out_channels, kernel_size=kernel, stride=stride, padding=(kernel-1)//2, bias=False),
-                        nn.BatchNorm2d(out_channels),
-                        nn.LeakyReLU(0.1,inplace=True)
-                    )
-        else:
-            return nn.Sequential(
-                    nn.Conv2d(in_channels, out_channels, kernel_size=kernel, stride=stride, padding=(kernel-1)//2, bias=True),
-                    nn.LeakyReLU(.1, inplace=True)
-                    )
-
-    def flow(self, in_channels):
-        return nn.Conv2d(in_channels,2,kernel_size=3,stride=1,padding=1,bias=False)
-
-    def correlate(fmap1, fmap2):
-        return CorrBlock(fmap1, fmap2)
-
-    def ConvTrans(in_channels, out_channels):
-        return nn.Sequential(
-            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.LeakyReLU(0.1,inplace=True)
-        )
-
-    def crop_like(input, target):
-        if input.size()[2:] == target.size()[2:]:
-            return input
-        else:
-            return input[:, :, :target.size(2), :target.size(3)]
 
 
 def flownetc(data=None):
@@ -170,7 +167,7 @@ def flownetc(data=None):
     Learning Optical Flow with Convolutional Networks" paper (https://arxiv.org/abs/1504.06852)
 
     """
-    model = FlowNetC(batchNorm=False)
+    model = FlowNet(bn=False)
     if data is not None:
         model.load_state_dict(data['state_dict'])
     return model
@@ -181,7 +178,7 @@ def flownetc_bn(data=None):
     Learning Optical Flow with Convolutional Networks" paper (https://arxiv.org/abs/1504.06852)
 
     """
-    model = FlowNetC(batchNorm=True)
+    model = FlowNet(bn=True)
     if data is not None:
         model.load_state_dict(data['state_dict'])
     return model
