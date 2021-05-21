@@ -112,12 +112,12 @@ def main():
     input_transform = transforms.Compose([
             transforms.Resize((256, 256)),
             #RandomTranslate(10),
-            #transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
-            #transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
-            #transforms.RandomGrayscale(p=0.1),
+            transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
+            transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
+            transforms.RandomGrayscale(p=0.1),
             transforms.ToTensor(),
-            #transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
-            #transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
+            transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
+            transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
         ])
 
 ## --------------------- loading and concatinating the data --------------------- ##
@@ -220,20 +220,21 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 
 ## --------------------- Training --------------------- ##
 
-    for i, (input, target) in enumerate(train_loader):
+    for i, (inputs, yaw, pitch) in enumerate(train_loader):
         start_time = time.time()
-        target = target
-        input = torch.cat(input,1).to(device)
-
+        yaw = yaw
+        pitch = pitch
+        inputs = torch.cat(inputs,1).to(device)
         print("=> training on batch")
-        pred_yaw, pred_pitch = model(input)
+        pred_yaw, pred_pitch = model(inputs)
 
-        yaw_MSE = yaw_loss(pred_yaw, target[0])
-        pitch_MSE = pitch_loss(pred_pitch, target[1])
-        loss = float(yaw_MSE)//2 + float(pitch_MSE)//2
+        yaw_MSE = yaw_loss(pred_yaw, yaw)*.5
+        print(pred_yaw, yaw)
+        pitch_MSE = pitch_loss(pred_pitch, pitch)*.5
+        loss = yaw_MSE + pitch_MSE
 
-        losses.append(float(loss.item()))
-        train_writer.add_scalar('train_loss', loss.item())
+        losses.append(float(yaw_MSE.item()) + float(pitch_MSE.item()))
+        train_writer.add_scalar('train_loss', yaw_MSE.item()+pitch_MSE.item())
 
         optimizer.zero_grad()
         loss.backward()

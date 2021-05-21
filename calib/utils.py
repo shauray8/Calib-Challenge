@@ -96,9 +96,9 @@ class RandomTranslate(object):
 
 
 ## ---------------- Make Dataset --> [[img1, img2], [yaw, pitch]] ---------------- ##
-def loader(path_imgs, target):
+def loader(path_imgs, yaw, pitch):
     #return [np.array((Image.open(img)), dtype=np.float64) for img in path_imgs], target
-    return [(Image.open(img)) for img in path_imgs], target
+    return [(Image.open(img)) for img in path_imgs], yaw, pitch
 
 class ListDataset(Dataset):
     def __init__(self, root, path_list, transform=None):
@@ -109,14 +109,14 @@ class ListDataset(Dataset):
 
     def __getitem__(self, index):
         
-        inputs, target = self.path_list[index]
-        inputs, target = loader(inputs, target)
+        inputs, yaw, pitch = self.path_list[index]
+        inputs, yaw, pitch = loader(inputs, yaw, pitch)
 
         if self.transform is not None:
             inputs[0] = self.transform(inputs[0])
             inputs[1] = self.transform(inputs[1])
 
-        return inputs, target
+        return inputs, yaw, pitch
 
     def __len__(self):
         return len(self.path_list)
@@ -134,7 +134,7 @@ def DATA_LOADER(root, split):
         drive_img = drive_img[0].split("\n")
         for i in range(len(input_img)-1):
             yaw, pitch = drive_img[i].split(" ")
-            img_data.append([[ input_img[i], input_img[i+1] ], [float(yaw), float(pitch)] ])
+            img_data.append([[ input_img[i], input_img[i+1] ], float(yaw), float(pitch) ])
 
     train, test = [], []
     for sample in range( int(split*len(img_data)) ):
