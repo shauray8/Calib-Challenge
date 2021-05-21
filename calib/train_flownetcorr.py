@@ -175,9 +175,9 @@ def main():
 
 ## --------------------- Training Loop --------------------- ##
 
-    for epoch in trange(args.start_epoch, args.epochs):
+    for epoch in (r := trange(args.start_epoch, args.epochs)):
 
-        avg_loss_MSE, train_Loss_MSE, display = train(train_loader, model,
+        avg_loss_MSE, train_loss_MSE, display = train(train_loader, model,
                 optimizer, epoch, train_writer, yaw_loss, pitch_loss)
         
         scheduler.step()
@@ -204,6 +204,8 @@ def main():
             'best_EPE': best_MSE,
             'div_flow': args.div_flow
         }, is_best, save_path)
+        
+        r.set_description(f"train_stuff: {display}, epoch: {epoch+1}, val_Stuff: {display_val}")
 
 ## --------------------- TRAIN function for the training loop --------------------- ##
 

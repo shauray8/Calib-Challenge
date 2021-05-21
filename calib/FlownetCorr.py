@@ -36,28 +36,28 @@ class FlowNet(nn.Module):
         self.flow5 = self.flow(1026)
         self.flow4 = self.flow(770)
         self.flow3 = self.flow(386)
-        self.flow2 = self.flow(194)
+        self.flow2 = self.last_flow(194)
 
         self.upsampled_flow6_to_5 = nn.ConvTranspose2d(2, 2, 4, 2, 1, bias=False)
         self.upsampled_flow5_to_4 = nn.ConvTranspose2d(2, 2, 4, 2, 1, bias=False)
         self.upsampled_flow4_to_3 = nn.ConvTranspose2d(2, 2, 4, 2, 1, bias=False)
         self.upsampled_flow3_to_2 = nn.ConvTranspose2d(2, 2, 4, 2, 1, bias=False)
 
-        self.yaw_block = nn.Sequential(nn.Flatten(),
-            nn.Linear(8*192*64*64, 1000),
-            nn.Linear(1000, 640),
-            nn.Linear(640, 320),
-            nn.Linear(320, 160),
-            nn.Linear(160, 70),
-            )
+        #self.yaw_block = nn.Sequential(nn.Flatten(),
+            #nn.Linear(8*2*64*64, 1000),
+            #nn.Linear(194, 640),
+            #nn.Linear(640, 320),
+            #nn.Linear(320, 160),
+            #nn.Linear(160, 70),
+            #)
 
-        self.pitch_block = nn.Sequential(nn.Flatten(),
-            nn.Linear(8*192*64*64, 1000),
-            nn.Linear(1000, 640),
-            nn.Linear(640, 320),
-            nn.Linear(320, 160),
-            nn.Linear(160, 70),
-            )
+        #self.pitch_block = nn.Sequential(nn.Flatten(),
+            #nn.Linear(8*2*64*64, 1000),
+            #nn.Linear(194, 640),
+            #nn.Linear(640, 320),
+            #nn.Linear(320, 160),
+            #nn.Linear(160, 70),
+            #)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
@@ -90,6 +90,12 @@ class FlowNet(nn.Module):
 
     def flow(self, in_channels):
         return nn.Conv2d(in_channels,2,kernel_size=3,stride=1,padding=1,bias=False)
+
+    def last_flow(self, in_channels):
+        return nn.Sequential(nn.Conv2d(in_channels,2,kernel_size=3,stride=1,padding=1,bias=False),
+                nn.Flatten(),
+                nn.Linear(8*8192, 70)
+                )
 
     def correlate(self, fmap1, fmap2):
         correlation = CorrBlock(fmap1, fmap2)
@@ -160,12 +166,16 @@ class FlowNet(nn.Module):
         out_ConvTrans2 = self.crop_like(self.ConvTrans2(concat3), out_conv2a)
 
         concat2 = torch.cat((out_conv2a,out_ConvTrans2,flow3_up),1)
-        flow2 = self.flow2(concat2)
+        flow2_yaw = self.flow2(concat2)
+        flow2_pitch = self.flow2(concat2)
         
-        print(concat2.shape)
+        print(flow2_yaw.shape)
+        print(flow2_pitch.shape)
+        #last_block = self.last_conv(flow2)
 
 ## --------------------- Returning the last block containing Linear Layers --------------------- ##
-        return self.yaw_block(concat2), self.pitch_block(concat2)
+        #return self.yaw_block(concat2), self.pitch_block(concat2)
+        return flow2_yaw, flow2_pitch
 
 
 def flownetc(data=None):
