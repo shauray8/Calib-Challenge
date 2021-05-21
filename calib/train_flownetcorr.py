@@ -230,10 +230,10 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 
         yaw_MSE = yaw_loss(pred_yaw, target[0])
         pitch_MSE = pitch_loss(pred_pitch, target[1])
-        loss = yaw_MSE + pitch_MSE
+        loss = float(yaw_MSE)//2 + float(pitch_MSE)//2
 
         losses.append(float(loss.item()))
-        train_writer.add_scalar('train_loss', loss.item(), n_inter)
+        train_writer.add_scalar('train_loss', loss.item())
 
         optimizer.zero_grad()
         loss.backward()

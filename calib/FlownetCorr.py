@@ -94,7 +94,8 @@ class FlowNet(nn.Module):
     def last_flow(self, in_channels):
         return nn.Sequential(nn.Conv2d(in_channels,2,kernel_size=3,stride=1,padding=1,bias=False),
                 nn.Flatten(),
-                nn.Linear(8*8192, 70)
+                nn.Linear(8192, 70),
+                nn.Linear(70, 8)
                 )
 
     def correlate(self, fmap1, fmap2):
