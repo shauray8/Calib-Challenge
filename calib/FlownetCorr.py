@@ -94,9 +94,9 @@ class FlowNet(nn.Module):
     def last_flow(self, in_channels):
         return nn.Sequential(nn.Conv2d(in_channels,2,kernel_size=3,stride=1,padding=1,bias=False),
                 nn.Flatten(),
-                nn.Linear(8192, 1000),
+                nn.Linear(1250, 1000),
                 nn.Linear(1000, 70),
-                nn.Linear(70, 8),
+                nn.Linear(70,1),
                 nn.Softmax(dim=1)
                 )
 
@@ -178,7 +178,7 @@ class FlowNet(nn.Module):
 
 ## --------------------- Returning the last block containing Linear Layers --------------------- ##
         #return self.yaw_block(concat2), self.pitch_block(concat2)
-        return flow2_yaw, flow2_pitch
+        return flow2_yaw.reshape(8), flow2_pitch.reshape(8)
 
 
 def flownetc(data=None):

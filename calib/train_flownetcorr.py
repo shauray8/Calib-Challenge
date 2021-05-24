@@ -54,7 +54,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('--epoch-size', default=1000, type=int, metavar='N',
                     help='manual epoch size (will match dataset size if set to 0)')
-parser.add_argument('-b', '--batch-size', default=9, type=int,
+parser.add_argument('-b', '--batch-size', default=8, type=int,
                     metavar='N', help='mini-batch size')
 parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
                     metavar='LR', help='initial learning rate')
@@ -110,7 +110,7 @@ def main():
 ## --------------------- transforming the data --------------------- ##
 
     input_transform = transforms.Compose([
-            transforms.Resize((256, 256)),
+            transforms.Resize((100, 100)),
             #RandomTranslate(10),
             transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
             transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
@@ -229,10 +229,10 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
         print("=> training on batch")
         pred_yaw, pred_pitch = model(inputs)
 
-        yaw_MSE = yaw_loss(np.argmax(pred_yaw), yaw)*.5
+        yaw_MSE = yaw_loss(pred_yaw, yaw)
         print(pred_yaw, yaw)
-        pitch_MSE = pitch_loss(pred_pitch, pitch)*.5
-        loss = yaw_MSE + pitch_MSE
+        pitch_MSE = pitch_loss(pred_pitch, pitch)
+        loss = (yaw_MSE + pitch_MSE)*.5
 
         losses.append(float(yaw_MSE.item()) + float(pitch_MSE.item()))
         train_writer.add_scalar('train_loss', yaw_MSE.item()+pitch_MSE.item())
