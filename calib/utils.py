@@ -116,7 +116,7 @@ class ListDataset(Dataset):
             inputs[0] = self.transform(inputs[0])
             inputs[1] = self.transform(inputs[1])
 
-        return inputs, yaw, pitch
+        return inputs[0], inputs[1], yaw, pitch
 
     def __len__(self):
         return len(self.path_list)
@@ -125,7 +125,7 @@ def DATA_LOADER(root, split):
     img_data = []
     mode = 5
     for i in range(mode):
-        input_img = (glob.glob(os.path.join(root, "%s" % i) + '/*.jpg'))
+        input_img = (glob.glob(os.path.join(root, f"{str(i)}") + '/*.jpg'))
         target_num = (glob.glob(os.path.join("../labeled") + f'/{i}.txt'))
         drive_img = []
 

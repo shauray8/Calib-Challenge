@@ -220,13 +220,14 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 
 ## --------------------- Training --------------------- ##
 
-    for i, (inputs, yaw, pitch) in enumerate(train_loader):
+    for i, (inputs_1, inputs_2, yaw, pitch) in enumerate(train_loader):
         start_time = time.time()
         yaw = yaw
         pitch = pitch
-        inputs = torch.cat(inputs,1).to(device)
+        inputs_1 = inputs_1.to(device)
+        inputs_2 = inputs_2.to(device)
         print("=> training on batch")
-        pred_yaw, pred_pitch = model(inputs)
+        pred_yaw, pred_pitch = model(inputs_1, inputs_2)
 
         yaw_MSE = yaw_loss(pred_yaw, yaw)*.5
         print(pred_yaw, yaw)
