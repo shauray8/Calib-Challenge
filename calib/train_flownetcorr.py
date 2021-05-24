@@ -54,7 +54,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('--epoch-size', default=1000, type=int, metavar='N',
                     help='manual epoch size (will match dataset size if set to 0)')
-parser.add_argument('-b', '--batch-size', default=8, type=int,
+parser.add_argument('-b', '--batch-size', default=9, type=int,
                     metavar='N', help='mini-batch size')
 parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
                     metavar='LR', help='initial learning rate')
@@ -220,16 +220,16 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 
 ## --------------------- Training --------------------- ##
 
-    for i, (inputs_1, inputs_2, yaw, pitch) in enumerate(train_loader):
+    for i, (input, yaw, pitch) in enumerate(train_loader):
         start_time = time.time()
         yaw = yaw
         pitch = pitch
-        inputs_1 = inputs_1.to(device)
-        inputs_2 = inputs_2.to(device)
-        print("=> training on batch")
-        pred_yaw, pred_pitch = model(inputs_1, inputs_2)
+        inputs = torch.cat(input,1).to(device)
 
-        yaw_MSE = yaw_loss(pred_yaw, yaw)*.5
+        print("=> training on batch")
+        pred_yaw, pred_pitch = model(inputs)
+
+        yaw_MSE = yaw_loss(np.argmax(pred_yaw), yaw)*.5
         print(pred_yaw, yaw)
         pitch_MSE = pitch_loss(pred_pitch, pitch)*.5
         loss = yaw_MSE + pitch_MSE
@@ -261,12 +261,17 @@ def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
     model.eval()
     
     end = time.time()
-    for i, (input, target) in enumerate(val_loader):
-        target = target.to(device)
+    for i, (input, yaw, pitch) in enumerate(val_loader):
+        yaw = yaw
+        pitch = pitch
         input = torch.cat(input,1).to(device)
 
         output = model(input)
-        loss = loss_function(output, target)
+
+        yaw_MSE = yaw_loss(pred_yaw, yaw)*.5
+        print(pred_yaw, yaw)
+        pitch_MSE = pitch_loss(pred_pitch, pitch)*.5
+        loss = yaw_MSE + pitch_MSE
 
         end = time.time()
 

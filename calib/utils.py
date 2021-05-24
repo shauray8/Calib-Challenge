@@ -116,7 +116,7 @@ class ListDataset(Dataset):
             inputs[0] = self.transform(inputs[0])
             inputs[1] = self.transform(inputs[1])
 
-        return inputs[0], inputs[1], yaw, pitch
+        return inputs, yaw, pitch
 
     def __len__(self):
         return len(self.path_list)
