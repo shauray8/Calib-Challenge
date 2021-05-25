@@ -49,5 +49,8 @@ Adding details about the architecture soon!
 - [ ] Build and Deploy
 - [ ] Update README
 
+## How to tinker/use with the code ?
+adding soon be patient !
+
 ## example of how opensource is changing the world !! 
 [comma ai](https://github.com/commaai)
