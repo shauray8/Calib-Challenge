@@ -1,0 +1,1 @@
+tensorboard --logdir=flownetc_adam_300_bs8_lr0.0001

@@ -75,7 +75,7 @@ parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
 parser.add_argument('--pretrained', dest='pretrained', default=None,
                     help='path to pre-trained model')
-parser.add_argument('--no-date', action='store_true',
+parser.add_argument('--no-date', action='store_true',default=False,
                     help='don\'t append date timestamp to folder' )
 parser.add_argument('--div-flow', default=20,
                     help='value by which flow will be divided. Original value is 20 but 1 with batchNorm gives good results')
@@ -91,11 +91,9 @@ device = torch.device("cpu")
 def main():
     global args, best_MSE
     args = parser.parse_args()
-    save_path = f'{args.arch}_{args.solver}_{args.epochs}_bs{args.batch_size}_lr{args.lr}'
+    timestamp = datetime.datetime.now().strftime("%m-%d-%H-%M")
+    save_path = f'{args.arch}_{args.solver}_{args.epochs}_bs{args.batch_size}_time{timestamp}_lr{args.lr}'
         
-    if not args.no_date:
-        timestamp = datetime.datetime.now().strftime("%m-%d-%H:%M")
-        save_path = os.path.join(save_path)
     save_path = os.path.join("./pretrained/", save_path)
     print(f"=> will save everything to {save_path}")
     if not os.path.exists(save_path):
