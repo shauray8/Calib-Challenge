@@ -224,18 +224,20 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
         start_time = time.time()
         yaw = yaw
         pitch = pitch
+        print(pitch, yaw)
         inputs = torch.cat(input,1).to(device)
 
         print("=> training on batch")
         pred_yaw, pred_pitch = model(inputs)
 
         yaw_MSE = yaw_loss(pred_yaw, yaw)
-        print(pred_yaw, yaw)
+        print(pred_pitch.dtype, pitch.dtype)
+        
         pitch_MSE = pitch_loss(pred_pitch, pitch)
         loss = (yaw_MSE + pitch_MSE)*.5
 
-        losses.append(float(yaw_MSE.item()) + float(pitch_MSE.item()))
-        train_writer.add_scalar('train_loss', yaw_MSE.item()+pitch_MSE.item())
+        losses.append((float(yaw_MSE) + float(pitch_MSE)) *.5)
+        train_writer.add_scalar('train_loss', (float(yaw_MSE.item()+pitch_MSE.item())*.5))
 
         optimizer.zero_grad()
         loss.backward()
@@ -247,13 +249,13 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 ## --------------------- Stuff to display at output --------------------- ##
 
         if i % args.print_freq == 0:
-            display = ('Epoch: [{0}][{1}/{2}] ; Time {3} ; MSELoss {5}').format(epoch, 
+            display = ('Epoch: [{0}][{1}/{2}] ; Time {3} ; MSELoss {4}').format(epoch, 
                     i, epoch_size, batch_time, sum(losses)/len(losses))
         n_iters += 1
         if i >= epoch_size:
             break
 
-    return losses.avg, loss.item(), display
+    return losses.avg, loss.item() , display
 
 def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
     global args
