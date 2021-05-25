@@ -40,12 +40,12 @@ Adding details about the architecture soon!
 
 ## ToDo
 - [x] Visualizing the data
-- [ ] MaskFlow net
+- [X] MaskFlow net
 - [x] FlowNet corr
 - [ ] Gma
-- [ ] Training the model
+- [X] Training the model( on azure cause i have .edu email :) )
 - [ ] SLAM
-- [ ] Write utility functions
+- [X] Write utility functions ( done for flownet working on GMA )
 - [ ] Build and Deploy
 - [ ] Update README
 
