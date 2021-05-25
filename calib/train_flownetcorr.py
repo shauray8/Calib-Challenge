@@ -84,7 +84,7 @@ parser.add_argument('--milestones', default=[100,150,200], metavar='N', nargs='*
 ## ----------------------- global variables ----------------------- ##
 
 best_MSE = -1
-n_iter = 0
+n_iters = 0
 #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 device = torch.device("cpu")
 
@@ -224,14 +224,11 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
         start_time = time.time()
         yaw = yaw
         pitch = pitch
-        print(pitch, yaw)
         inputs = torch.cat(input,1).to(device)
 
-        print("=> training on batch")
         pred_yaw, pred_pitch = model(inputs)
 
         yaw_MSE = yaw_loss(pred_yaw, yaw)
-        print(pred_pitch.dtype, pitch.dtype)
         
         pitch_MSE = pitch_loss(pred_pitch, pitch)
         loss = (yaw_MSE + pitch_MSE)*.5
@@ -271,7 +268,6 @@ def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
         output = model(input)
 
         yaw_MSE = yaw_loss(pred_yaw, yaw)*.5
-        print(pred_yaw, yaw)
         pitch_MSE = pitch_loss(pred_pitch, pitch)*.5
         loss = yaw_MSE + pitch_MSE
 

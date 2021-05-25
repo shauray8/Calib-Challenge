@@ -172,8 +172,6 @@ class FlowNet(nn.Module):
         flow2_yaw = self.flow2(concat2)
         flow2_pitch = self.flow2(concat2)
         
-        print(flow2_yaw.shape)
-        print(flow2_pitch.shape)
         #last_block = self.last_conv(flow2)
 
 ## --------------------- Returning the last block containing Linear Layers --------------------- ##
