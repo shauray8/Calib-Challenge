@@ -69,7 +69,7 @@ parser.add_argument('--bias-decay', default=0, type=float,
 parser.add_argument('--multiscale-weights', '-w', default=[0.005,0.01,0.02,0.08,0.32], type=float, nargs=5,
                     help='training weight for each scale, from highest resolution (flow2) to lowest (flow6)',
                     metavar=('W2', 'W3', 'W4', 'W5', 'W6'))
-parser.add_argument('--print-freq', '-p', default=10, type=int,
+parser.add_argument('--print-freq', '-p', default=1, type=int,
                     metavar='N', help='print frequency')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
@@ -172,7 +172,8 @@ def main():
     pitch_loss = nn.MSELoss()
 
 ## --------------------- Training Loop --------------------- ##
-
+    
+    print("=> training go look tensorboard for more stuff")
     for epoch in (r := trange(args.start_epoch, args.epochs)):
 
         avg_loss_MSE, train_loss_MSE, display = train(train_loader, model,
@@ -182,7 +183,7 @@ def main():
         train_writer.add_scalar('mean MSE', avg_loss_MSE, epoch)
 
 ## --------------------- Validation Step --------------------- ##
-
+        
         with torch.no_grad():
             MSE_loss_val, display_val = validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss)
         test_writer.add_scalar('mean MSE', MSE_loss_val, epoch)

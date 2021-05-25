@@ -100,6 +100,8 @@ def loader(path_imgs, yaw, pitch):
     #return [np.array((Image.open(img)), dtype=np.float64) for img in path_imgs], target
     return [(Image.open(img)) for img in path_imgs], yaw, pitch
 
+## ---------------- return all the usefull stuff ---------------- ##
+
 class ListDataset(Dataset):
     def __init__(self, root, path_list, transform=None):
 
@@ -120,6 +122,8 @@ class ListDataset(Dataset):
 
     def __len__(self):
         return len(self.path_list)
+
+## ---------------- grab all the data from respective files ---------------- ##
 
 def DATA_LOADER(root, split):        
     img_data = []
@@ -250,7 +254,3 @@ if __name__ == "__main__":
     parser.add_argument('--data', default=1, type=int, metavar='N',
                     help='number of video')
     args = parser.parse_args()
-    #show(args.data)
-    #frame_by_frame('../labeled/2.hevc')
-    #DATA_LOADER("../labeled", "Transform", 22).frame_by_frame
-    #break_into_images()
