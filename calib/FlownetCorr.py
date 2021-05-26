@@ -176,7 +176,7 @@ class FlowNet(nn.Module):
 
 ## --------------------- Returning the last block containing Linear Layers --------------------- ##
         #return self.yaw_block(concat2), self.pitch_block(concat2)
-        return flow2_yaw.reshape(8), flow2_pitch.reshape(8)
+        return flow2_yaw.reshape(11), flow2_pitch.reshape(11)
 
 
 def flownetc(data=None):
