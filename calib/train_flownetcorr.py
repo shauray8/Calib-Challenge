@@ -85,8 +85,8 @@ parser.add_argument('--milestones', default=[100,150,200], metavar='N', nargs='*
 
 best_MSE = -1
 n_iters = 0
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cpu")
 
 def main():
     global args, best_MSE
@@ -221,8 +221,8 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 
     for i, (input, yaw, pitch) in enumerate(train_loader):
         start_time = time.time()
-        yaw = yaw
-        pitch = pitch
+        yaw = yaw.to(device)
+        pitch = pitch.to(device)
         inputs = torch.cat(input,1).to(device)
 
         pred_yaw, pred_pitch = model(inputs)
@@ -241,6 +241,8 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 
         end = time.time()
         batch_time = end - start_time
+        print(yaw, pitch)
+        print(pred_yaw, pred_pitch)
         
 ## --------------------- Stuff to display at output --------------------- ##
 
