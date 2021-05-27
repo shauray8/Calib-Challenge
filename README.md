@@ -15,9 +15,9 @@ You can estimate the focal length to be 910 pixels.</br>
 ![](./Docs/yaw-pitch-roll.png)
 
 ## Evaluation
-They will evaluate our mean squared error against our ground truth labels. Errors for frames where the car speed is less than 4m/s will be ignored. Those are also labeled as NaN in the example labels.
+They will evaluate our mean squared error against our ground truth labels. Errors for frames where the car speed is less than 4m/s will be ignored. Those are also labelled as NaN in the example labels.
 </br></br>
-commaai's repo includes an eval script that will give an error score (lower is better). You can use it to test your solutions against the labeled examples. They will use this script to evaluate your solution.
+commaai's repo includes an eval script that will give an error score (lower is better). You can use it to test your solutions against the labelled examples. They will use this script to evaluate your solution.
 
 ## Architecture 
 I am thinking of using some kind of optical flow model and rather than doing some kind of image stabilization or something I'll make it yield Yaw and Pitch of the moving vehicle.
@@ -68,8 +68,8 @@ If you have a better idea for the ONE HOT vector alternative just let me know !!
 - [ ] Build and Deploy
 - [ ] Update README
 
-## How to tinker/use with the code ?
-adding soon be patient !
+## How to tinker/use with the code?
+adding soon be patient!
 
 ## example of how opensource is changing the world !! 
 [comma ai](https://github.com/commaai)
