@@ -199,6 +199,12 @@ def save_checkpoint(state, is_best, save_path, filename='checkpoint.pth.tar'):
     if is_best:
         shutil.copyfile(os.path.join(save_path,filename), os.path.join(save_path,'model_best.pth.tar'))
 
+
+## ---------------- making ranges for yaw and pitch using my stats skills ;^) ---------------- ##
+
+def onehot_vector():
+    pass
+
 ## ---------------- For Global Motion Aggregation ---------------- ##
 
 class InputPadder:
