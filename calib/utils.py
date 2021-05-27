@@ -254,3 +254,4 @@ if __name__ == "__main__":
     parser.add_argument('--data', default=1, type=int, metavar='N',
                     help='number of video')
     args = parser.parse_args()
+    show(args.data)

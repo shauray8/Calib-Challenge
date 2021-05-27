@@ -25,7 +25,28 @@ I am thinking of using some kind of optical flow model and rather than doing som
 Adding details about the architecture soon!
 ### 1. FlowNetCorr
 [reseach paper](https://arxiv.org/pdf/1504.06852.pdf)
-![](./Docs/FlowNetARch.png)
+
+I'm gonna keep it short, sweet and to the point
+So the architecture used was taken from this [reseach paper](https://arxiv.org/pdf/1504.06852.pdf)
+it's ConvNets again !! predicting a stuff like optical flows is not easy and surely you can not do 
+it with a single input image. </br>
+
+A straightforward step is to create two separate, yet iden-tical processing streams for the
+two adjacent frames and to combine them at a later stage (after 3 convs in this case).</br>
+
+In the reseach paper to concatinate the outputs for the convnets they used "CORRelation layer"
+but I dont think it makes a lot of difference. </br>
+
+![](./Docs/FlowNetARch.png)</br></br>
+after a bunch of ConvNets it goes through a refinement layer the output for the above architecture
+is the input for the refinement layero !
+
+![](./Docs/FlowNetRef.png)</br></br>
+
+This pretty much summarieses the architecture and at the end rather than implimenting the last layer
+I make the matrix pass through a Linear layer and predict yaw and pitch with a ONE HOT vector kinda thing.
+If you have a better idea for the ONE HOT vector alternative just let me know !!</br>
+
 ### 2. Global Motion Aggregation
 ![](./Docs/GMA_Arch.png)
 ### 3. MarkFlowNet --> no implimentation 
