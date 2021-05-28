@@ -112,6 +112,7 @@ class ListDataset(Dataset):
     def __getitem__(self, index):
         
         inputs, yaw, pitch = self.path_list[index]
+        yaw, pitch = onehot_vector(yaw), onehot_vector(pitch)
         inputs, yaw, pitch = loader(inputs, yaw, pitch)
 
         if self.transform is not None:
@@ -202,7 +203,8 @@ def save_checkpoint(state, is_best, save_path, filename='checkpoint.pth.tar'):
 
 ## ---------------- making ranges for yaw and pitch using my stats skills ;^) ---------------- ##
 
-def onehot_vector():
+def onehot_vector(item):
+    
     pass
 
 ## ---------------- For Global Motion Aggregation ---------------- ##
