@@ -129,6 +129,8 @@ class ListDataset(Dataset):
 def DATA_LOADER(root, split):        
     img_data = []
     mode = 5
+    global yaw_array = []
+    global pitch_array = []
     for i in range(mode):
         input_img = (glob.glob(os.path.join(root, f"{str(i)}") + '/*.jpg'))
         target_num = (glob.glob(os.path.join("../labeled") + f'/{i}.txt'))
@@ -140,6 +142,7 @@ def DATA_LOADER(root, split):
         for i in range(len(input_img)-1):
             yaw, pitch = drive_img[i].split(" ")
             img_data.append([[ input_img[i], input_img[i+1] ], float(yaw), float(pitch) ])
+            yaw_array, pitch_array += np.sort(np.array(yaw)) ,np.sort(np.array(pitch))
 
     train, test = [], []
     for sample in range( int(split*len(img_data)) ):
@@ -148,6 +151,13 @@ def DATA_LOADER(root, split):
         test.append(img_data[sample])
 
     return train, test
+
+def hothot():
+    class_length = 100
+    a = dict()
+    for i in range(len(0, global yaw_array, class_length)):
+        a += {global yaw_array[i]: global yaw_array[i+1]}
+    print(a)
 
 def Transformed_data(root, transform=None, split=None):
     train, test = DATA_LOADER(root, split)
