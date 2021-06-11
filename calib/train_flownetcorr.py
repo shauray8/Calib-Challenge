@@ -224,6 +224,7 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
         yaw = yaw.to(device)
         pitch = pitch.to(device)
         inputs = torch.cat(input,1).to(device)
+        print(yaw, pitch)
 
         pred_yaw, pred_pitch = model(inputs)
 
