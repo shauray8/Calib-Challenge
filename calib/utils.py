@@ -129,8 +129,8 @@ class ListDataset(Dataset):
 def DATA_LOADER(root, split):        
     img_data = []
     mode = 5
-    #global yaw_array = []
-    #global pitch_array = []
+    yaw_array = []
+    pitch_array = []
     for i in range(mode):
         input_img = (glob.glob(os.path.join(root, f"{str(i)}") + '/*.jpg'))
         target_num = (glob.glob(os.path.join("../labeled") + f'/{i}.txt'))
@@ -142,7 +142,21 @@ def DATA_LOADER(root, split):
         for i in range(len(input_img)-1):
             yaw, pitch = drive_img[i].split(" ")
             img_data.append([[ input_img[i], input_img[i+1] ], float(yaw), float(pitch) ])
-            #yaw_array, pitch_array += np.sort(np.array(yaw)) ,np.sort(np.array(pitch))
+            yaw_array.append(float(yaw))
+            pitch_array.append(float(pitch))
+            
+    yaw_array = np.sort(yaw_array)
+    pitch_array = np.sort(pitch_array)
+    yaw_classes, pitch_classes = [], []
+    for yaw in range(len(yaw_array)):
+        if yaw % 100 == 0:
+            yaw_classes.append(yaw_array[yaw])
+
+    for pitch in range(len(pitch_array)):
+        if pitch % 100 == 0:
+            pitch_classes.append(pitch_array[pitch])
+
+    print(yaw_classes, pitch_classes)
 
     train, test = [], []
     for sample in range( int(split*len(img_data)) ):
@@ -150,11 +164,12 @@ def DATA_LOADER(root, split):
     for sample in range( int(split*len(img_data)), len(img_data) ):
         test.append(img_data[sample])
 
-    return train, test
+    return train, test, yaw_classes, pitch_classes
 
 
 def Transformed_data(root, transform=None, split=None):
-    train, test = DATA_LOADER(root, split)
+    train, test, yaw_classes, pitch_classes = DATA_LOADER(root, split)
+    print("YAW",yaw_classes, "PITCH",pitch_classes)
     train_dataset = ListDataset(root, train, transform )
     test_dataset = ListDataset(root, test, transform )
 
