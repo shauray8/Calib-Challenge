@@ -4,6 +4,7 @@ import argparse
 import os
 import time
 import numpy as np
+import datetime
 from tqdm import trange
 
 import torch
@@ -13,7 +14,6 @@ import torch.optim
 import torch.utils.data
 import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
-import datetime
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.tensorboard import SummaryWriter
 
