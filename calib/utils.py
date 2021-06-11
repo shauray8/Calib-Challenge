@@ -141,22 +141,25 @@ def DATA_LOADER(root, split):
         drive_img = drive_img[0].split("\n")
         for i in range(len(input_img)-1):
             yaw, pitch = drive_img[i].split(" ")
+            yaw = 0 if yaw == "nan" else yaw
+            pitch = 0 if pitch == "nan" else pitch
             img_data.append([[ input_img[i], input_img[i+1] ], float(yaw), float(pitch) ])
             yaw_array.append(float(yaw))
             pitch_array.append(float(pitch))
             
     yaw_array = np.sort(yaw_array)
     pitch_array = np.sort(pitch_array)
-    yaw_classes, pitch_classes = [], []
+    yaw_classes, pitch_classes = [0.], [0.]
+
     for yaw in range(len(yaw_array)):
-        if yaw % 100 == 0:
+        if yaw % 100 == 0 and yaw_array[yaw] > 0:
             yaw_classes.append(yaw_array[yaw])
+    yaw_classes.append(1.)
 
     for pitch in range(len(pitch_array)):
-        if pitch % 100 == 0:
+        if pitch % 100 == 0 and pitch_array[pitch] > 0:
             pitch_classes.append(pitch_array[pitch])
-
-    print(yaw_classes, pitch_classes)
+    pitch_classes.append(1.)
 
     train, test = [], []
     for sample in range( int(split*len(img_data)) ):
