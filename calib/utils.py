@@ -152,12 +152,6 @@ def DATA_LOADER(root, split):
 
     return train, test
 
-#def hothot():
-#    class_length = 100
-#    a = dict()
-#    for i in range(len(0, global yaw_array, class_length)):
-#        a += {global yaw_array[i]: global yaw_array[i+1]}
-#    print(a)
 
 def Transformed_data(root, transform=None, split=None):
     train, test = DATA_LOADER(root, split)
