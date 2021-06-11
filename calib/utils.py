@@ -103,16 +103,18 @@ def loader(path_imgs, yaw, pitch):
 ## ---------------- return all the usefull stuff ---------------- ##
 
 class ListDataset(Dataset):
-    def __init__(self, root, path_list, transform=None):
+    def __init__(self, root, path_list, yaw_classes, pitch_classes, transform=None):
 
         self.root = root
         self.path_list = path_list
         self.transform = transform
+        self.yaw_classes = yaw_classes
+        self.pitch_classes = pitch_classes
 
     def __getitem__(self, index):
         
         inputs, yaw, pitch = self.path_list[index]
-        #yaw, pitch = onehot_vector(yaw), onehot_vector(pitch)
+        yaw, pitch = onehot_vector(yaw, self.yaw_classes), onehot_vector(pitch, self.pitch_classes)
         inputs, yaw, pitch = loader(inputs, yaw, pitch)
 
         if self.transform is not None:
@@ -147,9 +149,13 @@ def DATA_LOADER(root, split):
             yaw_array.append(float(yaw))
             pitch_array.append(float(pitch))
             
+## ---------------- initializing class ararys with value 0. ---------------- ##
+
     yaw_array = np.sort(yaw_array)
     pitch_array = np.sort(pitch_array)
     yaw_classes, pitch_classes = [0.], [0.]
+
+## ---------------- breaking into classes of 100 each ---------------- ##
 
     for yaw in range(len(yaw_array)):
         if yaw % 100 == 0 and yaw_array[yaw] > 0:
@@ -161,9 +167,12 @@ def DATA_LOADER(root, split):
             pitch_classes.append(pitch_array[pitch])
     pitch_classes.append(1.)
 
+## ---------------- train, validation split ---------------- ##
+
     train, test = [], []
     for sample in range( int(split*len(img_data)) ):
         train.append(img_data[sample])
+
     for sample in range( int(split*len(img_data)), len(img_data) ):
         test.append(img_data[sample])
 
@@ -173,8 +182,8 @@ def DATA_LOADER(root, split):
 def Transformed_data(root, transform=None, split=None):
     train, test, yaw_classes, pitch_classes = DATA_LOADER(root, split)
     print("YAW",yaw_classes, "PITCH",pitch_classes)
-    train_dataset = ListDataset(root, train, transform )
-    test_dataset = ListDataset(root, test, transform )
+    train_dataset = ListDataset(root, train, yaw_classes, pitch_classes, transform)
+    test_dataset = ListDataset(root, test, yaw_classes, pitch_classes, transform)
 
     return train_dataset, test_dataset
 
@@ -225,9 +234,14 @@ def save_checkpoint(state, is_best, save_path, filename='checkpoint.pth.tar'):
 
 ## ---------------- making ranges for yaw and pitch using my stats skills ;^) ---------------- ##
 
-def onehot_vector(item):
-    
-    pass
+def onehot_vector(item, classes):
+    print(len(classes))
+    onehot = np.zeros(len(classes))
+    for i in range(len(classes)):
+        if item <= classes[i]:
+            onehot[i] = 1
+            break
+    return onehot
 
 ## ---------------- For Global Motion Aggregation ---------------- ##
 
