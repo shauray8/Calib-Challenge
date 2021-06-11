@@ -1,9 +1,12 @@
 from __future__ import division
+import os, glob
+import shutil
 import matplotlib.pyplot as plt
 import cv2
-import os, glob
+
 import torch
-import shutil
+import scipy.ndimage as ndimage
+from torch.utils.data import DataLoader, Dataset
 from PIL import Image
 from imageio import imread
 
@@ -11,8 +14,6 @@ import random
 import numpy as np
 import numbers
 import types
-import scipy.ndimage as ndimage
-from torch.utils.data import DataLoader, Dataset
 import argparse
 
 def openit(path, line):
@@ -141,6 +142,7 @@ def DATA_LOADER(root, split):
         w = open(target_num[0],'r')
         drive_img.append(w.read())
         drive_img = drive_img[0].split("\n")
+    
         for i in range(len(input_img)-1):
             yaw, pitch = drive_img[i].split(" ")
             yaw = 0 if yaw == "nan" else yaw
@@ -207,6 +209,7 @@ def frame_by_frame(input):
         frames.append(torch.zeros(frames[0].shape))
         print("inner",len(frames))
         final_images = [torch.cat((torch.tensor(frames[i]), torch.tensor(frames[i+1])), 1) for i in range(len(frames))]
+    
     print(len(final_image))
     return final_image
 
@@ -215,11 +218,13 @@ def frame_by_frame(input):
 def break_into_images():
     input_vid = sorted(glob.glob(os.path.join('../labeled') + '/*.HEVC'))
     folder = 0
+    
     for i in input_vid:
         folder += 1
         vidcap = cv2.VideoCapture(i)
         success,image = vidcap.read()
         count = 0
+        
         while success:
           cv2.imwrite(f"../data/{folder}/frame%d.jpg" % count, image)     # save frame as JPEG file      
           success,image = vidcap.read()
@@ -240,6 +245,7 @@ def onehot_vector(item, classes):
         if item <= classes[i]:
             onehot[i] = 1
             break
+
     return onehot
 
 ## ---------------- For Global Motion Aggregation ---------------- ##
