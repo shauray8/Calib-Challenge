@@ -224,7 +224,6 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
         yaw = yaw.to(device)
         pitch = pitch.to(device)
         inputs = torch.cat(input,1).to(device)
-        print(yaw, pitch)
 
         pred_yaw, pred_pitch = model(inputs)
 
@@ -242,17 +241,19 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 
         end = time.time()
         batch_time = end - start_time
-        print(yaw, pitch)
-        print(pred_yaw, pred_pitch)
+#        print(yaw, pitch)
+#        print(pred_yaw, pred_pitch)
         
 ## --------------------- Stuff to display at output --------------------- ##
 
-        if i % args.print_freq == 0:
-            display = ('Epoch: [{0}][{1}/{2}] ; Time {3} ; MSELoss {4}').format(epoch, 
+        if i % args.print_freq == 50:
+            display = (' Epoch: [{0}][{1}/{2}] ; Time {3} ; MSELoss {4}').format(epoch, 
                     i, epoch_size, batch_time, sum(losses)/len(losses))
+            print(display)
         n_iters += 1
         if i >= epoch_size:
             break
+    
 
     return losses.avg, loss.item() , display
 
@@ -283,8 +284,9 @@ def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
        #         output_writers[i].add_image('Inputs', (input[0,3:].cpu() + mean_values).clamp(0,1), 1)
        #     output_writers[i].add_image('FlowNet Outputs', flow2rgb(args.div_flow * output[0], max_value=10), epoch)
 
-        if i % args.print_freq == 0:
+        if i % args.print_freq == 50:
             display_val = ('Test: [{0}/{1}] ; Loss {2}').format(i, len(val_loader), loss.item())
+            print(display_val)
 
     return loss.item(), display_val
         

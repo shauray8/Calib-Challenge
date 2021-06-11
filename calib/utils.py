@@ -181,7 +181,7 @@ def DATA_LOADER(root, split):
 
 def Transformed_data(root, transform=None, split=None):
     train, test, yaw_classes, pitch_classes = DATA_LOADER(root, split)
-    print("YAW",yaw_classes, "PITCH",pitch_classes)
+    #print("YAW",yaw_classes, "PITCH",pitch_classes)
     train_dataset = ListDataset(root, train, yaw_classes, pitch_classes, transform)
     test_dataset = ListDataset(root, test, yaw_classes, pitch_classes, transform)
 
@@ -235,7 +235,6 @@ def save_checkpoint(state, is_best, save_path, filename='checkpoint.pth.tar'):
 ## ---------------- making ranges for yaw and pitch using my stats skills ;^) ---------------- ##
 
 def onehot_vector(item, classes):
-    print(len(classes))
     onehot = np.zeros(len(classes))
     for i in range(len(classes)):
         if item <= classes[i]:
