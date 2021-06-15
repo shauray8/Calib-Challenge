@@ -220,16 +220,18 @@ def break_into_images():
     folder = 0
     
     for i in input_vid:
-        folder += 1
         vidcap = cv2.VideoCapture(i)
         success,image = vidcap.read()
         count = 0
         
         while success:
-          cv2.imwrite(f"../data/{folder}/frame%d.jpg" % count, image)     # save frame as JPEG file      
+          ount = "0"*(4 - len(str(count))) + str(count)
+          cv2.imwrite(f"./data/{folder}/frame{ount}.jpg", image)     # save frame as JPEG file      
           success,image = vidcap.read()
-          print('Read a new frame: ', success)
+          print('Read a new frame: ', success, ount)
           count += 1
+          
+        folder += 1
 
 def save_checkpoint(state, is_best, save_path, filename='checkpoint.pth.tar'):
     torch.save(state, os.path.join(save_path,filename))
