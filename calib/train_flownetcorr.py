@@ -255,7 +255,7 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
             break
     
 
-    return losses.avg, loss.item() , display
+    return sum(losses)/len(losses), loss.item() , display
 
 def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
     global args
