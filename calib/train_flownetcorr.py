@@ -245,8 +245,8 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 ## --------------------- Stuff to display at output --------------------- ##
 
         if i % args.print_freq == 0:
-            display = (' Epoch: [{0}][{1}/{2}] ; Time {3} ; MSELoss {4}').format(epoch, 
-                    i, epoch_size, batch_time, sum(losses)/len(losses))
+            display = (' Epoch: [{0}][{1}/{2}] ; Time {3} ; Avg MSELoss {4} ; yaw_MSE {5} ; pitch_MSE {6}').format(epoch, 
+                    i, epoch_size, batch_time, sum(losses)/len(losses), yaw_MSE.item(), pitch_MSE.item())
             print(display)
         n_iters += 1
         if i >= epoch_size:
@@ -262,8 +262,8 @@ def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
     
     end = time.time()
     for i, (input, yaw, pitch) in enumerate(val_loader):
-        yaw = yaw
-        pitch = pitch
+        yaw = yaw.to(device)
+        pitch = pitch.to(device)
         input = torch.cat(input,1).to(device)
 
         pred_yaw, pred_pitch = model(input)
