@@ -12,8 +12,9 @@ the goal is to predict the direction of travel (in camera frame) from provided d
 The example labels are generated using a Neural Network, and the labels were confirmed with a SLAM algorithm.</br>
 You can estimate the focal length to be 910 pixels.</br>
 </br>
-![](./Docs/yaw-pitch-roll.png)
-
+<p align="center">
+  <img src="./Docs/yaw-pitch-roll.png"></img>
+</p>
 ## Evaluation
 They will evaluate our mean squared error against our ground truth labels. Errors for frames where the car speed is less than 4m/s will be ignored. Those are also labelled as NaN in the example labels.
 </br></br>
@@ -38,9 +39,9 @@ but I don't think it makes a lot of difference. </br>
 ![](./Docs/FlowNetARch.png)</br></br>
 after a bunch of ConvNets, it goes through a refinement layer the output for the above architecture
 is the input for the refinement layer!
-
-![](./Docs/FlowNetRef.png)</br></br>
-
+<p align="center">
+<img src = "./Docs/FlowNetRef.png"></img></br></br>
+</p>
 This pretty much summarizes the architecture and at the end rather than implementing the last layer
 I make the matrix pass through a Linear layer and predict yaw and pitch with ONE HOT vector kinda thing.
 If you have a better idea for the ONE HOT vector alternative just let me know !!</br>
