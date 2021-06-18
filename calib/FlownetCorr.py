@@ -94,9 +94,9 @@ class FlowNet(nn.Module):
     def last_flow(self, in_channels):
         return nn.Sequential(nn.Conv2d(in_channels,2,kernel_size=3,stride=1,padding=1,bias=False),
                 nn.Flatten(),
-                nn.Linear(1250, 1000),
-                nn.Linear(1000, 350),
-                nn.Linear(350,52),
+                nn.Linear(1700, 1000), # concat.size --> ([2]*2*[3])
+                nn.Linear(1000, 450),
+                nn.Linear(450,52),
                 nn.Softmax(dim=1)
                 )
 

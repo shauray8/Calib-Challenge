@@ -54,7 +54,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('--epoch-size', default=1000, type=int, metavar='N',
                     help='manual epoch size (will match dataset size if set to 0)')
-parser.add_argument('-b', '--batch-size', default=11, type=int,
+parser.add_argument('-b', '--batch-size', default=16, type=int,
                     metavar='N', help='mini-batch size')
 parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
                     metavar='LR', help='initial learning rate')
@@ -69,7 +69,7 @@ parser.add_argument('--bias-decay', default=0, type=float,
 parser.add_argument('--multiscale-weights', '-w', default=[0.005,0.01,0.02,0.08,0.32], type=float, nargs=5,
                     help='training weight for each scale, from highest resolution (flow2) to lowest (flow6)',
                     metavar=('W2', 'W3', 'W4', 'W5', 'W6'))
-parser.add_argument('--print-freq', '-p', default=1, type=int,
+parser.add_argument('--print-freq', '-p', default=10, type=int,
                     metavar='N', help='print frequency')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
@@ -85,8 +85,8 @@ parser.add_argument('--milestones', default=[100,150,200], metavar='N', nargs='*
 
 best_MSE = -1
 n_iters = 0
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cpu")
 
 def main():
     global args, best_MSE
@@ -102,13 +102,11 @@ def main():
     train_writer = SummaryWriter(os.path.join(save_path, "train"))
     test_writer = SummaryWriter(os.path.join(save_path, "test"))
     output_writers = []
-    for i in range(3):
-        output_writers.append(SummaryWriter(os.path.join(save_path, 'test', str(i))))
 
 ## --------------------- transforming the data --------------------- ##
 
     input_transform = transforms.Compose([
-            transforms.Resize((100, 100)),
+            transforms.Resize((100)),
             #RandomTranslate(10),
             transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
             transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
@@ -186,7 +184,7 @@ def main():
         
         with torch.no_grad():
             MSE_loss_val, display_val = validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss)
-        test_writer.add_scalar('mean MSE', MSE_loss_val, epoch)
+        test_writer.add_scalar('validation mean MSE', MSE_loss_val, epoch)
 
         if best_MSE < 0:
             best_MSE = MSE_loss_val
@@ -246,7 +244,7 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
         
 ## --------------------- Stuff to display at output --------------------- ##
 
-        if i % args.print_freq == 50:
+        if i % args.print_freq == 0:
             display = (' Epoch: [{0}][{1}/{2}] ; Time {3} ; MSELoss {4}').format(epoch, 
                     i, epoch_size, batch_time, sum(losses)/len(losses))
             print(display)
@@ -268,7 +266,7 @@ def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
         pitch = pitch
         input = torch.cat(input,1).to(device)
 
-        output = model(input)
+        pred_yaw, pred_pitch = model(input)
 
         yaw_MSE = yaw_loss(pred_yaw, yaw)*.5
         pitch_MSE = pitch_loss(pred_pitch, pitch)*.5
@@ -284,7 +282,7 @@ def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
        #         output_writers[i].add_image('Inputs', (input[0,3:].cpu() + mean_values).clamp(0,1), 1)
        #     output_writers[i].add_image('FlowNet Outputs', flow2rgb(args.div_flow * output[0], max_value=10), epoch)
 
-        if i % args.print_freq == 50:
+        if i % args.print_freq == 0:
             display_val = ('Test: [{0}/{1}] ; Loss {2}').format(i, len(val_loader), loss.item())
             print(display_val)
 

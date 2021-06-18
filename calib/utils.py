@@ -226,9 +226,9 @@ def break_into_images():
         
         while success:
           ount = "0"*(4 - len(str(count))) + str(count)
-          cv2.imwrite(f"./data/{folder}/frame{ount}.jpg", image)     # save frame as JPEG file      
+          cv2.imwrite(f"../../data/calib_image_data/{folder}/frame{ount}.jpg", image)     # save frame as JPEG file      
           success,image = vidcap.read()
-          print('Read a new frame: ', success, ount)
+          print('Read a new frame: ', success, folder, ount)
           count += 1
           
         folder += 1
@@ -300,9 +300,16 @@ def forward_interpolate(flow):
     return torch.from_numpy(flow).float()
 
 if __name__ == "__main__":
+
+## ---------------- Displaying the dataset with respective yaw and pitch ---------------- ##
+
     parser = argparse.ArgumentParser(description='Wanna Watch some random dude drive',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--data', default=1, type=int, metavar='N',
+    parser.add_argument('--data', default=2, type=int, metavar='N',
                     help='number of video')
     args = parser.parse_args()
     show(args.data)
+ 
+## ---------------- Breaking frames into images for the dataset ---------------- ##
+
+    break_into_images()
