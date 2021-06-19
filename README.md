@@ -57,13 +57,14 @@ If you have a better idea for the ONE HOT vector alternative just let me know !!
 [Eval script](eval.py)</br>
 [Models and training script](./calib)</br>
 [Setup](setup.py) </br>
+[Pretrained weights](./calib/pretrained/)</br>
 
 ## ToDo
 - [x] Visualizing the data
 - [X] MaskFlow net
 - [x] FlowNet corr
 - [ ] Gma
-- [X] Training the model( on azure cause i have .edu email :) )
+- [X] Training the model( on azure cause i have .edu email :) ) PS. Azure is useless  !
 - [ ] SLAM
 - [X] Write utility functions ( done for flownet working on GMA )
 - [ ] Build and Deploy
