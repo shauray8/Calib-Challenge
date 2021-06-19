@@ -178,7 +178,7 @@ def main():
                 optimizer, epoch, train_writer, yaw_loss, pitch_loss)
         
         scheduler.step()
-        train_writer.add_scalar('mean MSE', avg_loss_MSE, epoch)
+        train_writer.add_scalar('train mean MSE', avg_loss_MSE, epoch)
 
 ## --------------------- Validation Step --------------------- ##
         
