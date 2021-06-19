@@ -42,7 +42,7 @@ advances
 * Other conduct which could reasonably be considered inappropriate in a
   professional setting
 
-all of this is BS do what ever you want !!
+### all of this is BS do what ever you want !!
 
 ### Our Responsibilities
 
@@ -86,4 +86,5 @@ available at [http://contributor-covenant.org/version/1/4][version]
 [homepage]: http://github.com/shauray8/calib-challange
 
 
-## I just wanted to add a contributing.md this is all BS.
+### I just wanted to add a contributing.md ignore everything above this
+YOLO
