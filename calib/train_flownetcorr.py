@@ -86,6 +86,7 @@ parser.add_argument('--milestones', default=[100,150,200], metavar='N', nargs='*
 best_MSE = -1
 n_iters = 0
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+epoch = 0
 #device = torch.device("cpu")
 
 def main():
@@ -133,9 +134,12 @@ def main():
 
 ## --------------------- MODEL from FlowNetCorr.py --------------------- ##
     
+    model = flownetc().to(device)
+
     if args.pretrained:
         network_data = torch.load(args.pretrained)
-        args.arch = network_data['arch']
+        model.load_state_dict(network_data["state_dict"])
+        epoch.load_state_dict(netwrk_data['epoch'])
         print(f"=> creating model {args.arch}")
     else:
         network_data = None
@@ -143,7 +147,7 @@ def main():
 
 ## --------------------- Checking and selecting a optimizer [SGD, ADAM] --------------------- ##
 
-    model = flownetc().to(device)
+    
     if args.solver not in ['adam', 'sgd']:
         print("=> enter a supported optimizer")
         return 
@@ -246,9 +250,10 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 
         if i % args.print_freq == 0:
             display = (' Epoch: [{0}][{1}/{2}] ; Time {3} ; Avg MSELoss {4} ; yaw_MSE {5} ; pitch_MSE {6}').format(epoch, 
-                    i, epoch_size, batch_time, sum(losses)/len(losses), yaw_MSE.item(), pitch_MSE.item())
+                    epoch, epoch_size, batch_time, sum(losses)/len(losses), yaw_MSE.item(), pitch_MSE.item())
             print(display)
         n_iters += 1
+        epoch += 1
         if i >= epoch_size:
             break
     
