@@ -74,6 +74,10 @@ If you have a better idea for the ONE HOT vector alternative just let me know !!
 I'm so lazy to compelete the code. If there is anyone to compelete it for me go on !!
 
 ## How to tinker/use the code?
+
+* you can monitor the training process with tensorboard:
+`tensorboard --port=PORT --logdir=pretrained`
+
 adding soon be patient!
 
 ## example of how opensource is changing the world !! 
