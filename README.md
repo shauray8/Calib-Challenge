@@ -75,7 +75,7 @@ I'm so lazy to compelete the code. If there is anyone to compelete it for me go 
 
 ## How to tinker/use the code?
 
-* you can monitor the training process with tensorboard:
+* you can monitor the training process with tensorboard:</br>
 `tensorboard --port=PORT --logdir=pretrained`
 
 adding soon be patient!
