@@ -9,6 +9,7 @@ import scipy.ndimage as ndimage
 from torch.utils.data import DataLoader, Dataset
 from PIL import Image
 from imageio import imread
+import pickle
 
 import random
 import numpy as np
@@ -233,8 +234,9 @@ def break_into_images():
           
         folder += 1
 
-def save_checkpoint(state, is_best, save_path, filename='checkpoint.pth.tar'):
-    torch.save(state, os.path.join(save_path,filename))
+def save_checkpoint(state, is_best, save_path, filename='checkpoint.pkl'):
+    with open(os.path.join(save_path, filename), 'wb') as handle:
+        pickle.dump(state, handle, protocol=pickle.HIGHEST_PROTOCOL)
     if is_best:
         shutil.copyfile(os.path.join(save_path,filename), os.path.join(save_path,'model_best.pth.tar'))
 

@@ -6,6 +6,7 @@ import time
 import numpy as np
 import datetime
 from tqdm import trange
+import pickle
 
 import torch
 import torch.nn.functional as F
@@ -73,7 +74,7 @@ parser.add_argument('--print-freq', '-p', default=10, type=int,
                     metavar='N', help='print frequency')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
-parser.add_argument('--pretrained', dest='pretrained', default="./pretrained/weghts.pkl",
+parser.add_argument('--pretrained', dest='pretrained', default=None,
                     help='path to pre-trained model')
 parser.add_argument('--no-date', action='store_true',default=False,
                     help='don\'t append date timestamp to folder' )
@@ -86,11 +87,11 @@ parser.add_argument('--milestones', default=[100,150,200], metavar='N', nargs='*
 best_MSE = -1
 n_iters = 0
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-epoch = 0
 #device = torch.device("cpu")
 
 def main():
     global args, best_MSE
+    main_epoch = 0
     args = parser.parse_args()
     timestamp = datetime.datetime.now().strftime("%m-%d-%H-%M")
     save_path = f'{args.arch}_{args.solver}_{args.epochs}_bs{args.batch_size}_time{timestamp}_lr{args.lr}'
@@ -136,10 +137,12 @@ def main():
     
     model = flownetc().to(device)
 
-    if args.pretrained:
-        network_data = torch.load(args.pretrained)
+    if args.pretrained is not None:
+        with open(args.pretrained, 'rb') as pickle_file:
+            network_data = pickle.load(pickle_file)
+
         model.load_state_dict(network_data["state_dict"])
-        epoch.load_state_dict(netwrk_data['epoch'])
+        main_epoch = network_data['epoch']
         print(f"=> creating model {args.arch}")
     else:
         network_data = None
@@ -179,7 +182,7 @@ def main():
     for epoch in (r := trange(args.start_epoch, args.epochs)):
 
         avg_loss_MSE, train_loss_MSE, display = train(train_loader, model,
-                optimizer, epoch, train_writer, yaw_loss, pitch_loss)
+                optimizer, epoch+main_epoch, train_writer, yaw_loss, pitch_loss)
         
         scheduler.step()
         train_writer.add_scalar('train mean MSE', avg_loss_MSE, epoch)
@@ -213,7 +216,7 @@ def main():
 def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_loss):
     global n_iters, args
 
-    epoch_size = len(train_loader) if args.epoch_size == 0 else min(len(train_loader), args.epoch_size)
+    epoch_size = len(train_loade+main_epochr) if args.epoch_size == 0 else min(len(train_loader), args.epoch_size)
 
     losses = []
     model.train()
@@ -250,14 +253,12 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 
         if i % args.print_freq == 0:
             display = (' Epoch: [{0}][{1}/{2}] ; Time {3} ; Avg MSELoss {4} ; yaw_MSE {5} ; pitch_MSE {6}').format(epoch, 
-                    epoch, epoch_size, batch_time, sum(losses)/len(losses), yaw_MSE.item(), pitch_MSE.item())
+                    i, epoch_size, batch_time, sum(losses)/len(losses), yaw_MSE.item(), pitch_MSE.item())
             print(display)
         n_iters += 1
-        epoch += 1
         if i >= epoch_size:
             break
     
-
     return sum(losses)/len(losses), loss.item() , display
 
 def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
