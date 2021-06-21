@@ -76,7 +76,14 @@ I'm so lazy to compelete the code. If there is anyone to compelete it for me go 
 ## How to tinker/use the code?
 
 * you can monitor the training process with tensorboard:</br>
-`tensorboard --port=PORT --logdir=pretrained`
+`
+tensorboard --port=PORT --logdir=pretrained
+`
+
+* pretrained model is a little too heavy for github, uploading on google drive
+`
+https://drive.google.com/file/d/1kxpD8DmL-CQIB02zxah_-BIoM6spcBJF/view?usp=sharing
+`
 
 adding soon be patient!
 
