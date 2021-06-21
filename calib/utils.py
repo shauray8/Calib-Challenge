@@ -173,11 +173,12 @@ def DATA_LOADER(root, split):
 ## ---------------- train, validation split ---------------- ##
 
     train, test = [], []
-    for sample in range( int(split*len(img_data)) ):
-        train.append(img_data[sample])
+    if split is not None:
+        for sample in range( int(split*len(img_data)) ):
+            train.append(img_data[sample])
 
-    for sample in range( int(split*len(img_data)), len(img_data) ):
-        test.append(img_data[sample])
+        for sample in range( int(split*len(img_data)), len(img_data) ):
+            test.append(img_data[sample])
 
     return train, test, yaw_classes, pitch_classes
 
