@@ -176,6 +176,7 @@ def main():
     yaw_loss = nn.MSELoss()
     pitch_loss = nn.MSELoss()
 
+
 ## --------------------- Training Loop --------------------- ##
     
     print("=> training go look tensorboard for more stuff")
@@ -291,6 +292,7 @@ def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
         if i % args.print_freq == 0:
             display_val = ('Test: [{0}/{1}] ; Loss {2}').format(i, len(val_loader), loss.item())
             print(display_val)
+            print(f"=> Values: Actual yaw: {yaw} ; Pred yaw: {pred_yaw} --- Actual pitch : {pitch} ; Pred pitch : {pred_pitch}")
 
     return loss.item(), display_val
         
