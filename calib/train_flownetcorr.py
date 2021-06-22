@@ -74,7 +74,7 @@ parser.add_argument('--print-freq', '-p', default=10, type=int,
                     metavar='N', help='print frequency')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
-parser.add_argument('--pretrained', dest='pretrained', default=None,
+parser.add_argument('--pretrained', dest='pretrained', default="./pretrained/checkpoint.pkl",
                     help='path to pre-trained model')
 parser.add_argument('--no-date', action='store_true',default=False,
                     help='don\'t append date timestamp to folder' )
@@ -292,7 +292,7 @@ def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
         if i % args.print_freq == 0:
             display_val = ('Test: [{0}/{1}] ; Loss {2}').format(i, len(val_loader), loss.item())
             print(display_val)
-            print(f"=> Values: Actual yaw: {yaw} ; Pred yaw: {pred_yaw} --- Actual pitch : {pitch} ; Pred pitch : {pred_pitch}")
+            print(f"=> Values: Actual yaw: {np.argmax(yaw)} ; Pred yaw: {np.argmax(pred_yaw)} --- Actual pitch : {np.argmax(pitch)} ; Pred pitch : {np.argmax(pred_pitch)}")
 
     return loss.item(), display_val
         
