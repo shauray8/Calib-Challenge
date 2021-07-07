@@ -76,15 +76,28 @@ I'm so lazy to compelete the code. If there is anyone to compelete it for me go 
 ## How to tinker/use the code?
 
 * you can monitor the training process with tensorboard:</br>
-`
+```
 tensorboard --port=PORT --logdir=pretrained
-`
+```
 
 * pretrained model is a little too heavy for github, uploading on google drive
-`
+```
 https://drive.google.com/file/d/1kxpD8DmL-CQIB02zxah_-BIoM6spcBJF/view?usp=sharing
-`
+```
 
+* training script for flownetCorr is [here](./calib/train_flownetcorr.py)
+```
+  - python train_flownetcorr --help (for all the arguments and folder locations)
+  - the training loop is in the 'train' function.
+  - the validation loop is in the 'validation' function.
+  - there are relevent comments before every piece of code so it is not that tough to identify and change stuff.
+  - it uses MSE loss that is the squared of the mean of the losses through the batchsize.
+
+```
+* FlownetCorr model is [here](./calib/FlownetCorr.py)
+```
+  -
+```
 adding soon be patient!
 
 ## example of how opensource is changing the world !! 
