@@ -15,6 +15,9 @@ You can estimate the focal length to be 910 pixels.</br>
 <p align="center">
   <img src="./Docs/yaw-pitch-roll.png"></img>
 </p>
+
+Extending the goals and making myself a functional device that can meke my car drive itself. </br>
+what are the things I have to consider when writing code (still thinking)
 ## Evaluation
 They will evaluate our mean squared error against our ground truth labels. Errors for frames where the car speed is less than 4m/s will be ignored. Those are also labelled as NaN in the example labels.
 </br></br>
