@@ -72,6 +72,7 @@ If you have a better idea for the ONE HOT vector alternative just let me know !!
 - [X] Write utility functions ( done for flownet working on GMA )
 - [ ] Build and Deploy
 - [ ] Update README
+- [ ] Segment comma 10k dataset
 
 
 I'm so lazy to compelete the code. If there is anyone to compelete it for me go on !!
