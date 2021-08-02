@@ -74,6 +74,10 @@ If you have a better idea for the ONE HOT vector alternative just let me know !!
 - [ ] Update README
 - [ ] Segment comma 10k dataset
 
+I have to deploy it and retrain it on new data and keep on doing that !
+</br>
+for now I'm not doing it in real time or with time i will make this thing work with carla 
+</br>
 
 I'm so lazy to compelete the code. If there is anyone to compelete it for me go on !!
 
