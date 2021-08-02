@@ -15,9 +15,12 @@ You can estimate the focal length to be 910 pixels.</br>
 <p align="center">
   <img src="./Docs/yaw-pitch-roll.png"></img>
 </p>
-
+</br>
 Extending the goals and making myself a functional device that can meke my car drive itself. </br>
 what are the things I have to consider when writing code (still thinking)
+
+</br>
+So its a lot of classes I have to think some clever way to get it down.
 ## Evaluation
 They will evaluate our mean squared error against our ground truth labels. Errors for frames where the car speed is less than 4m/s will be ignored. Those are also labelled as NaN in the example labels.
 </br></br>
@@ -61,11 +64,13 @@ If you have a better idea for the ONE HOT vector alternative just let me know !!
 [Models and training script](./calib)</br>
 [Setup](setup.py) </br>
 [Pretrained weights](./calib/pretrained/)</br>
+[what the user sees](./windowee)</br>
+[segmentation](./U-net2)</br>
 
 ## ToDo
 - [x] Visualizing the data
 - [X] MaskFlow net
-- [x] FlowNet corr
+- [x] FlowNet corr (not as good as I thought)
 - [ ] Gma
 - [X] Training the model( on azure cause i have .edu email :) ) PS. Azure is useless  !
 - [ ] SLAM
