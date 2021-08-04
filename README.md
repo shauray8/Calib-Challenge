@@ -20,7 +20,7 @@ Extending the goals and making myself a functional device that can meke my car d
 what are the things I have to consider when writing code (still thinking)
 
 </br>
-So its a lot of classes I have to think some clever way to get it down.
+So its a lot of classes I have to think some clever way to get it down.</br>
 ## Evaluation
 They will evaluate our mean squared error against our ground truth labels. Errors for frames where the car speed is less than 4m/s will be ignored. Those are also labelled as NaN in the example labels.
 </br></br>
