@@ -21,6 +21,7 @@ what are the things I have to consider when writing code (still thinking)
 
 </br>
 So its a lot of classes I have to think some clever way to get it down.</br>
+
 ## Evaluation
 They will evaluate our mean squared error against our ground truth labels. Errors for frames where the car speed is less than 4m/s will be ignored. Those are also labelled as NaN in the example labels.
 </br></br>
@@ -58,14 +59,15 @@ If you have a better idea for the ONE HOT vector alternative just let me know !!
 ### 4. FlowNet2.0 --> no implimentation 
 
 ## Navigation
-[Labelled dataset](./labeled)</br>
-[Unlabeled test dataset](./unlabeled)</br>
-[Eval script](eval.py)</br>
-[Models and training script](./calib)</br>
+[Labelled dataset](./labeled) [by comma]</br>
+[Unlabeled test dataset](./unlabeled) [by comma]</br>
+[Eval script](eval.py) [by comma]</br>
+[Models and training script](./calib_scripts)</br>
 [Setup](setup.py) </br>
-[Pretrained weights](./calib/pretrained/)</br>
-[what the user sees](./windowee)</br>
-[segmentation](./U-net2)</br>
+[Pretrained weights](./pretrained_models/)</br>
+[what the user sees (software)](./soft_serve_python)</br>
+[what the user sees (webpage)](./web_serve_js)</br>
+[segmentation](./U-net2_segnets)</br>
 
 ## ToDo
 - [x] Visualizing the data
