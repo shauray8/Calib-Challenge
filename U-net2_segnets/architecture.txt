@@ -1,0 +1,9 @@
+writing all the stuff about U square net here straight from the research paper
+
+
+It is a two level nested U-structure.
+advantages -- 
+  it is able to capture more contextural information from different scales 
+  it increses the depth of the whole architecture without significantly increasing the computational cost because of the pooling operations used in these RSU blocks.
+
+
