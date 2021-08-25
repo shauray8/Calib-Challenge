@@ -7,5 +7,4 @@
  3 - #808060 - undrivable
  4 - #00ff66 - movable (vehicles and people/animals)
  5 - #cc00ff - my car (and anything inside it, including wires, mounts, etc. No reflections)
-
 ```
