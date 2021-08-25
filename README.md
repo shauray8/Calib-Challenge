@@ -82,6 +82,7 @@ If you have a better idea for the ONE HOT vector alternative just let me know !!
 - [ ] Segment comma 10k dataset
 - [ ] Pilotnet
 - [ ] Implement the research papers from george and do some viz on it use future images for pred lines (yaw and pitch)
+- [ ] Depth_net 
 
 I have to deploy it and retrain it on new data and keep on doing that !
 </br>
