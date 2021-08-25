@@ -77,7 +77,7 @@ If you have a better idea for the ONE HOT vector alternative just let me know !!
 - [X] Training the model( on azure cause i have .edu email :) ) PS. Azure is useless  !
 - [ ] SLAM
 - [X] Write utility functions ( done for flownet working on GMA )
-- [ ] Build and Deploy (Qt)
+- [ ] Build and Deploy with QT5 in the [pedal](https://github.com/shauray8/pedal) repo. 
 - [ ] Update README
 - [ ] Segment comma 10k dataset
 - [ ] Pilotnet
