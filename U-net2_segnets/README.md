@@ -10,3 +10,6 @@
 
 ### DATA
 Data is a hybrid between what [comma10k](https://github.com/commaai/comma10k) dataset provides and what i have collected in recent times(maybe i'll opensource it in comming weeks).
+</br>
+Comma10k is a collection of 10,000 PNGs of real driving captured from the comma fleet.
+

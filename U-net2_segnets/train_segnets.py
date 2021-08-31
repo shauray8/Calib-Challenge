@@ -1,3 +1,5 @@
+#!/usr/bin/bash
+
 ## -------------------- Imports -------------------- ##
 
 import argparse
