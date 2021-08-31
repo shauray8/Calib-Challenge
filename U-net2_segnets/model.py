@@ -7,12 +7,36 @@ import torch.nn as nn
 class Unet_square(nn.Module):
     def __init__(self):
         super(Unet_square, self).__init__()
-
         pass
 
-    # --------------- I think this is the only function i'll need --------------- #
+    def green_block(self):
+        pass
 
-    def conv_blocks_BNR(self, some_more_stuff):
+    def blue_block(self):
+        pass
+
+    def solid_white_block(self):
+        pass
+
+    def dashed_white_block(self):
+        pass
+
+    def dotted_white_block(self):
+        pass
+
+    def purple_block(self):
+        pass
+
+    def En_1(self):
+        pass
+
+    def En_2(self):
+        pass
+
+    def En_3(self):
+        pass
+
+    def En_4(self):
         pass
 
     def forward(self, z):
