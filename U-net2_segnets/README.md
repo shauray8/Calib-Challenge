@@ -13,6 +13,9 @@ Data is a hybrid between what [comma10k](https://github.com/commaai/comma10k) da
 </br>
 Comma10k is a collection of 10,000 PNGs of real driving captured from the comma fleet.
 </br>
-### This is what the images look like ! (1920 x 1208)
+### This is what the images looks like ! (1920 x 1208)
 ![image](../Docs/sample.png)
+
+### And this is what the mask looks like ! (1920 x 1208)
+![image](../Docs/sample_mask.png)
 
