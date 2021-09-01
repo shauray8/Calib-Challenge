@@ -8,6 +8,9 @@
  5 - #cc00ff - my car (and anything inside it, including wires, mounts, etc. No reflections)
 ```
 
+### How to use the scripts ?
+adding soon
+
 ### DATA
 Data is a hybrid between what [comma10k](https://github.com/commaai/comma10k) dataset provides and what i have collected in recent times(maybe i'll opensource it in comming weeks).
 </br>
