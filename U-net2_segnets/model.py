@@ -265,7 +265,7 @@ class En_De_4(nn.Module):
 
 class En_De_4F(nn.Module):    
     def __init__(self, in_channel=3, out_channel=3, mid_channel=12):
-        super(En_De_1, self).__init__()
+        super(En_De_4F, self).__init__()
 
         self.conv_input = Green_block(in_channel, out_channel, rate=1)
 
@@ -298,9 +298,101 @@ class En_De_4F(nn.Module):
 
 
 class Unet_square(nn.Module):
-    def __init__(self):
+    def __init__(self, in_channel=3, out_channel=1):
         super(Unet_square, self).__init__()
-        pass
+
+        self.cube_1 = En_De_1(in_channel, 32, 64)
+        self.pool_12 = nn.MaxPool2d(2, stride=2, ceil_mode = True)
+
+        self.cube_2 = En_De_2(64, 32, 128)
+        self.pool_23 = nn.MaxPool2d(2, stride=2, ceil_mode = True)
+
+        self.cube_3 = En_De_3(128, 64, 256)
+        self.pool_34 = nn.MaxPool2d(2, stride=2, ceil_mode = True)
+
+        self.cube_4 = En_De_4(256, 128, 512)
+        self.pool_45 = nn.MaxPool2d(2, stride=2, ceil_mode = True)
+
+        self.cube_5 = En_De_4F(512, 256, 512)
+        self.pool_56 = nn.MaxPool2d(2, stride=2, ceil_mode = True)
+
+        self.cube_6 = En_De_4F(512, 256, 512)
+
+
+        self.cube_5d = En_De_4F(1024,256,512)
+        self.cube_4d = En_De_4(1024,128,256)
+        self.cube_3d = En_De_5(512,64,128)
+        self.cube_2d = En_De_6(256,32,64)
+        self.cube_1d = En_De_7(128,16,64)
+
+        self.side_1 = nn.Conv2d(64,out_channel,3,padding=1)
+        self.side_2 = nn.Conv2d(64,out_channel,3,padding=1)
+        self.side_3 = nn.Conv2d(128,out_channel,3,padding=1)
+        self.side_4 = nn.Conv2d(256,out_channel,3,padding=1)
+        self.side_5 = nn.Conv2d(512,out_channel,3,padding=1)
+        self.side_6 = nn.Conv2d(512,out_channel,3,padding=1)
+
+        self.outconv = nn.Conv2d(6*out_channel, out_channel,1)
+
+
+    def forward(self, x):
+
+        hx_1 = self.cube_1(x)
+        hx = self.pool_12(hx_1)
+
+        hx_2 = self.cube_2(hx)
+        hx = self.pool_23(hx_2)
+
+        hx_3 = self.cube_3(hx)
+        hx = self.pool_34(hx_3)
+
+        hx_4 = self.cube_4(hx)
+        hx = self.pool_45(hx_4)
+
+        hx_5 = self.cube_5(hx)
+        hx = self.pool_56(hx_5)
+
+        hx_6 = self.cube_6(hx)
+        hx_6_up = _upsample(hx_6,hx_5)
+
+
+
+        hx_5d = self.cube_5d(torch.cat((hx_6_up, hx_5),1))
+        hx_5d_up = _upsample(hx_5d, hx_4)
+
+        hx_4d = self.cube_4d(torch.cat((hx_5d_up, hx_4),1))
+        hx_4d_up = _upsample(hx_4d, hx_3)
+
+        hx_3d = self.cube_3d(torch.cat((hx_4d_up, hx_3),1))
+        hx_3d_up = _upsample(hx_3d, hx_2)
+
+        hx_2d = self.cube_2d(torch.cat((hx_3d_up, hx_2),1))
+        hx_2d_up = _upsample(hx_2d, hx_1)
+
+        hx_1d = self.cube_1d(torch.cat((hx_2d_up, hx_1),1))
+
+
+
+        d1 = self.side_1(hx_1d)
+
+        d2 = self.side_2(hx_2d)
+        d2 = _upsample(d2, d1)
+
+        d3 = self.side_3(hx_3d)
+        d3 = _upsample(d3, d1)
+
+        d4 = self.side_4(hx_4d)
+        d4 = _upsample(d4, d1)
+
+        d5 = self.side_5(hx_5d)
+        d5 = _upsample(d5, d1)
+
+        d6 = self.side_6(hx_6)
+        d6 = _upsample(d6, d1)
+
+        d_not = self.outconv(torch.cat((d1, d2, d3, d4, d5, d6),1))
+
+        return F.sigmoid(d_not), F.sigmoid(d1), F.sigmoid(d2), F.sigmoid(d3), F.sigmoid(d4), F.sigmoid(d5), F.sigmoid(d6)
 
 
 if __name__ == "__main__":
