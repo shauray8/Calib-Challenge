@@ -33,10 +33,10 @@ def callable():
 
 ## -------------------- Argument Parser just for simplicity -------------------- ##
 
-parser = argparse.ArgumentParser(description='PyTorch FlowNet Training on several datasets',
+parser = argparse.ArgumentParser(description='PyTorch U square net training on comma 10k dataset',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument('--data', default="../../data/calib_image_data", type=str,
+parser.add_argument('--data', default="../../data/comma10k/comma10k", type=str,
                     help='path to dataset')
 
 group = parser.add_mutually_exclusive_group()
