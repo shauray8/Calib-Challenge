@@ -152,7 +152,7 @@ def main():
             test_set, batch_size=args.batch_size, num_workers=args.workers,
             pin_memory=True, shuffle = False)
 
-## --------------------- MODEL from FlowNetCorr.py --------------------- ##
+## --------------------- MODEL from model.py --------------------- ##
     
     model = Unet_square(3,5).to(device)
 
@@ -167,13 +167,8 @@ def main():
         network_data = None
         print(f"=> No pretrained weights ")
 
-## --------------------- Checking and selecting a optimizer [SGD, ADAM] --------------------- ##
+## --------------------- setting up the optimizer --------------------- ##
 
-    
-    if args.solver not in ['adam', 'sgd']:
-        print("=> enter a supported optimizer")
-        return 
-    
     print(f'=> settting {args.solver} optimizer')
     param_groups = [{'params': model.bias_parameters(), 'weight_decay': args.bias_decay},
             {'params': model.weight_parameters(), 'weight_decay': args.weight_decay}]

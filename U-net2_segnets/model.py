@@ -398,5 +398,5 @@ class Unet_square(nn.Module):
 if __name__ == "__main__":
     ## Using U square net for segmentations 
     ## getting the data from comma's some repo
-    model = Unet_square(3,10)
+    model = Unet_square(3,5)
     print(model)
