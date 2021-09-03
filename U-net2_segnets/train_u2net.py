@@ -90,6 +90,21 @@ n_iters = 0
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #device = torch.device("cpu")
 
+def multi_bce_loss(d_not, d1, d2, d3, d4, d5, d6, labels):
+
+    loss_not = bce_loss(d_not, labels_v)
+    loss_1 = bce_loss(d_1, labels_v)
+    loss_2 = bce_loss(d_2, labels_v)
+    loss_3 = bce_loss(d_3, labels_v)
+    loss_4 = bce_loss(d_4, labels_v)
+    loss_5 = bce_loss(d_5, labels_v)
+    loss_6 = bce_loss(d_6, labels_v)
+
+    loss = loss_not + loss_1 + loss_2 + loss_3 + loss_4 + loss_5 + loss_6
+    print(f"0: {loss_not.data.item()}, 1: {loss_1.data.item()},2: {loss_2.data.item()},3: {loss_3.data.item()},4: {loss_4.data.item()},5: {loss_5.data.item()},6: {loss_6.data.item()}")
+
+    return loss_not, loss
+
 def main():
     global args, best_MSE
     main_epoch = 0
@@ -109,11 +124,13 @@ def main():
 ## --------------------- transforming the data --------------------- ##
 
     input_transform = transforms.Compose([
-            transforms.Resize((100)),
-            #RandomTranslate(10),
+            transforms.Resize((320)),
             transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
             transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
             transforms.RandomGrayscale(p=0.1),
+            transforms.RandomPerspetive(distortion_scale=.6,p=.1)
+            transforms.RandomAutocontrast()
+            transforms.RandomHorizontalFlip(p=0.5)
             transforms.ToTensor(),
             transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
             transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
@@ -136,7 +153,7 @@ def main():
 
 ## --------------------- MODEL from FlowNetCorr.py --------------------- ##
     
-    model = flownetc().to(device)
+    model = Unet_square(3,5).to(device)
 
     if args.pretrained is not None:
         with open(args.pretrained, 'rb') as pickle_file:
@@ -164,7 +181,7 @@ def main():
         model = torch.nn.DataParallel(model).cuda()
         cudnn.benchmark = True
     
-    optimizer = torch.optim.Adam(param_groups, args.lr, betas=(args.momentum, args.beta)) if args.solver == 'adam' else torch.optim.SGD(param_groups, args.lr, momentum=args.momentum)
+    optimizer = torch.optim.Adam(model.parameters(), args.lr, betas=(args.momentum, args.beta), eps=1e-08, weight_decay=0)
     
     if args.evaluate:
         best_MSE = validation(val_loader, model, 0, output_writers, loss_function)
@@ -173,10 +190,6 @@ def main():
 ## --------------------- Scheduler and Loss Function --------------------- ##
 
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.milestones, gamma=.5)
-
-    yaw_loss = nn.MSELoss()
-    pitch_loss = nn.MSELoss()
-
 
 ## --------------------- Training Loop --------------------- ##
     
@@ -226,30 +239,22 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 
 ## --------------------- Training --------------------- ##
 
-    for i, (input, yaw, pitch) in enumerate(train_loader):
+    for i, (input_frame, ground) in enumerate(train_loader):
         start_time = time.time()
-        yaw = yaw.to(device)
-        pitch = pitch.to(device)
-        inputs = torch.cat(input,1).to(device)
-
-        pred_yaw, pred_pitch = model(inputs)
-
-        yaw_MSE = yaw_loss(pred_yaw, yaw)
-        
-        pitch_MSE = pitch_loss(pred_pitch, pitch)
-        loss = (yaw_MSE + pitch_MSE)*.5
-
-        losses.append((float(yaw_MSE) + float(pitch_MSE)) *.5)
-        train_writer.add_scalar('train_loss', (float(yaw_MSE.item()+pitch_MSE.item())*.5))
+        input_frame = input_frame.to(device)
+        ground = ground.to(device)
 
         optimizer.zero_grad()
+
+        d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(inputs_frame)
+        loss_2, loss = multi_bce_loss(d0 ,d1 ,d2 ,d3 ,d4 ,d5 ,d6 ,ground)
+
         loss.backward()
         optimizer.step()
+        train_writer.add_scalar('train_loss', (float(yaw_MSE.item()+pitch_MSE.item())*.5))
 
         end = time.time()
         batch_time = end - start_time
-#        print(yaw, pitch)
-#        print(pred_yaw, pred_pitch)
         
 ## --------------------- Stuff to display at output --------------------- ##
 
