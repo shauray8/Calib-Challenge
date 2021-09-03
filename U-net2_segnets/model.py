@@ -13,9 +13,9 @@ class Green_block(nn.Module):
     def __init__(self, in_channel=3, out_channel=3, rate=1):
         super(Green_block, self).__init__()
 
-        self.conv1_g = nn.Conv2d(in_channel, out_channel, 3, padding=dirate, dilation=dirate)
+        self.conv1_g = nn.Conv2d(in_channel, out_channel, 3, padding=rate, dilation=rate)
         self.bn_g = nn.BatchNorm2d(out_channel)
-        self.relu_g = nn.Relu(inplace=True)
+        self.relu_g = nn.ReLU(inplace=True)
 
     def forward(self, x):
 
@@ -321,9 +321,9 @@ class Unet_square(nn.Module):
 
         self.cube_5d = En_De_4F(1024,256,512)
         self.cube_4d = En_De_4(1024,128,256)
-        self.cube_3d = En_De_5(512,64,128)
-        self.cube_2d = En_De_6(256,32,64)
-        self.cube_1d = En_De_7(128,16,64)
+        self.cube_3d = En_De_3(512,64,128)
+        self.cube_2d = En_De_2(256,32,64)
+        self.cube_1d = En_De_1(128,16,64)
 
         self.side_1 = nn.Conv2d(64,out_channel,3,padding=1)
         self.side_2 = nn.Conv2d(64,out_channel,3,padding=1)
@@ -398,4 +398,5 @@ class Unet_square(nn.Module):
 if __name__ == "__main__":
     ## Using U square net for segmentations 
     ## getting the data from comma's some repo
-    model = Unet_square()
+    model = Unet_square(3,10)
+    print(model)
