@@ -44,9 +44,9 @@ group = parser.add_mutually_exclusive_group()
 group.add_argument('--split_value', default=0.8, type=float,
                    help='test-val split proportion between 0 (only test) and 1 (only train), '
                         'will be overwritten if a split file is set')
-parser.add_argument('--arch', '-a', metavar='ARCH', default='flownetc',
+parser.add_argument('--arch', '-a', metavar='ARCH', default='Unet_square',
                     choices=callable,)
-parser.add_argument('--solver', default='adam',choices=['adam','sgd'],
+parser.add_argument('--solver', default='adam',choices=['adam'],
                     help='solver algorithms')
 parser.add_argument('-j', '--workers', default=2, type=int, metavar='N',
                     help='number of data loading workers')
@@ -68,9 +68,6 @@ parser.add_argument('--weight-decay', '--wd', default=4e-4, type=float,
                     metavar='W', help='weight decay')
 parser.add_argument('--bias-decay', default=0, type=float,
                     metavar='B', help='bias decay')
-parser.add_argument('--multiscale-weights', '-w', default=[0.005,0.01,0.02,0.08,0.32], type=float, nargs=5,
-                    help='training weight for each scale, from highest resolution (flow2) to lowest (flow6)',
-                    metavar=('W2', 'W3', 'W4', 'W5', 'W6'))
 parser.add_argument('--print-freq', '-p', default=10, type=int,
                     metavar='N', help='print frequency')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
@@ -90,6 +87,8 @@ n_iters = 0
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #device = torch.device("cpu")
 
+## --------------------- BCE loss for every output layer --------------------- ##
+
 def multi_bce_loss(d_not, d1, d2, d3, d4, d5, d6, labels):
 
     loss_not = bce_loss(d_not, labels_v)
@@ -104,6 +103,8 @@ def multi_bce_loss(d_not, d1, d2, d3, d4, d5, d6, labels):
     print(f"0: {loss_not.data.item()}, 1: {loss_1.data.item()},2: {loss_2.data.item()},3: {loss_3.data.item()},4: {loss_4.data.item()},5: {loss_5.data.item()},6: {loss_6.data.item()}")
 
     return loss_not, loss
+
+## --------------------- Main function contains all the imp stuff --------------------- ##
 
 def main():
     global args, best_MSE
