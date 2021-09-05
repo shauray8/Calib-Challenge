@@ -87,6 +87,7 @@ n_iters = 0
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #device = torch.device("cpu")
 dir_checkpoint = "./pretrained"
+img_scale = 320
 
 ## --------------------- BCE loss for every output layer --------------------- ##
 
@@ -122,14 +123,13 @@ def main():
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    train_writer = SummaryWriter(os.path.join(save_path, "train"))
-    test_writer = SummaryWriter(os.path.join(save_path, "test"))
+    writer = SummaryaWriter(comment=f"LR_{args.lr}_BS_{args.batch_size}_SCALE_{img_scale}")
     output_writers = []
 
 ## --------------------- transforming the data --------------------- ##
 
     input_transform = transforms.Compose([
-            transforms.Resize((320)),
+            transforms.Resize((img_scale)),
             transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
             transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
             transforms.RandomGrayscale(p=0.1),
@@ -144,7 +144,12 @@ def main():
 ## --------------------- loading and concatinating the data --------------------- ##
 
     print(f"=> fetching image pairs from {args.data}") 
-    train_set, test_set = Transformed_data(args.data, transform=input_transform, split = args.split_value)
+
+    dataset = comma10k_dataset(imgs_dir1 = , imgs_dir2 = , masks_dir1 = , masks_dir2 = , transform = imput_transform, scale = img_scale)
+
+    val_set = int(len(dataset) * val_per)
+    train_set = len(dataset) - val_set
+    train_set, test_set = random_split(dataset, [train_set, val_set])
 
     print(f"=> {len(test_set) + len(train_set)} samples found, {len(train_set)} train samples and {len(test_set)} test samples")
 
@@ -152,7 +157,7 @@ def main():
             train_set, batch_size = args.batch_size, num_workers=args.workers,
             pin_memory=True, shuffle=True)
 
-    val_loader = DataLoader(
+    validation_loader = DataLoader(
             test_set, batch_size=args.batch_size, num_workers=args.workers,
             pin_memory=True, shuffle = False)
 
@@ -182,7 +187,6 @@ def main():
         cudnn.benchmark = True
 
 
-    writer = SummaryWriter(comment=f"LR_{lr}_BS_{batch_size}_SCALE_{img_scale}")
     global_step = 0
     
     optimizer = torch.optim.Adam(model.parameters(), args.lr, betas=(args.momentum, args.beta), eps=1e-08, weight_decay=0)
@@ -292,25 +296,13 @@ def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
     
     end = time.time()
     for i, (input, yaw, pitch) in enumerate(val_loader):
-        yaw = yaw.to(device)
-        pitch = pitch.to(device)
-        input = torch.cat(input,1).to(device)
+        input_frame = input_frame.to(device)
+        ground = ground.to(device)
 
-        pred_yaw, pred_pitch = model(input)
-
-        yaw_MSE = yaw_loss(pred_yaw, yaw)*.5
-        pitch_MSE = pitch_loss(pred_pitch, pitch)*.5
-        loss = yaw_MSE + pitch_MSE
+        d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(inputs_frame)
+        loss_2, loss = multi_bce_loss(d0 ,d1 ,d2 ,d3 ,d4 ,d5 ,d6 ,ground)
 
         end = time.time()
-
-       # if i < len(output_writers):
-       #     if epoch == 0:
-       #         mean_values = torch.tensor([0.45,0.432,0.411], dtype=input.dtype).view(3,1,1)
-       #         output_writers[i].add_image('GroundTruth', flow2rgb(args.div_flow * target[0], max_value=10), 0)
-       #         output_writers[i].add_image('Inputs', (input[0,:3].cpu() + mean_values).clamp(0,1), 0)
-       #         output_writers[i].add_image('Inputs', (input[0,3:].cpu() + mean_values).clamp(0,1), 1)
-       #     output_writers[i].add_image('FlowNet Outputs', flow2rgb(args.div_flow * output[0], max_value=10), epoch)
 
         if i % args.print_freq == 0:
             display_val = ('Test: [{0}/{1}] ; Loss {2}').format(i, len(val_loader), loss.item())
