@@ -20,6 +20,71 @@ import argparse
 
 ## ---------------- For FlowNetCorr ---------------- ##
 
+class comma10k_dataset(Dataset):
+    def __init__(self, imgs_dir1, imgs_dir2, masks_dir1, masks_dir2, transform, scale=1):
+        self.imgs_dir = imgs_dir
+        self.masks_dir = masks_dir
+        self.transform = transform
+        self.scale = scale
+
+        assert 0 < scale <= 1, 'scale must be between 0 and 1'
+
+        self.ids = [os.path.splitext(file)[0].split("_mask")[0] for file in listdir(masks_dir)
+                if not file.startswith('.')]
+
+        self.ids1 = [file for file in listdir(imgs_dir1)]
+        self.ids2 = [file for file in listdir(imgs_dir2)]
+        self.mask_ids1 = [file for file in listdir(masks_dir1)]
+        self.mask_ids2 = [file for file in listdir(masks_dir2)]
+        
+        print(len(self.ids1+ self.ids2))
+        print(f"Creating dataset with {len(self.ids1 + self.ids2)} example")
+
+    def __len__(self):
+        return len(self.ids)
+
+    @classmethod
+    def preprocess(cls, pil_image, scale):
+        w, h = pil_image.size
+        newW, newH = int(scale * w), int(scale * h)
+        pil_image = pil_image.resize((newW, newH))
+
+        img_nd = np.array(pil_image)
+
+        if len(img_nd.shape) == 2:
+            img_nd = np.expand_dims(img_nd, axis=2)
+
+        img_trans = img_nd.transpose((2,0,1))
+        if img_trans.max() > 1:
+            img_trans = img_trans / 255
+
+        
+        return img_trans
+
+    def __getitem__(self, i):
+        idx1 = self.ids1[i]
+        idx2 = self.ids2[i]
+        self.mask_file = glob(self.masks_dir1 + idx1 + ".*")
+        self.mask_file += glob(self.masks_dir2 + idx2 + ".*")
+        self.img_file = glob(self.imgs_dir1 + idx1 + ".*")
+        self.img_file += glob(self.imgs_dir2 + idx2 + ".*")
+
+        assert len(self.img_file) == 1, \
+            f'Either no image or multiple images found for the ID {idx}: {self.img_file}'
+        mask = Image.open(self.mask_file[0])
+        img = Image.open(self.img_file[0])
+        mask = mask.resize((image_size, image_size))
+        img = img.resize((image_size, image_size))
+
+#        img = self.preprocess(ImageOps.grayscale((img)), self.scale)
+#        mask = self.preprocess(ImageOps.grayscale((mask)), self.scale)
+        print('dataset preprocessing')
+        
+        return {
+            'image': torch.from_numpy((img)).type(torch.FloatTensor),
+            'mask': torch.from_numpy((mask)).type(torch.FloatTensor)
+        }
+
 ## ---------------- Make Dataset --> [[img1, img2], [yaw, pitch]] ---------------- ##
 def loader(path_imgs, yaw, pitch):
     #return [np.array((Image.open(img)), dtype=np.float64) for img in path_imgs], target
