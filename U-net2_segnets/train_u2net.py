@@ -91,7 +91,7 @@ dir_checkpoint = "./pretrained"
 ## --------------------- BCE loss for every output layer --------------------- ##
 
 def multi_bce_loss(d_not, d1, d2, d3, d4, d5, d6, labels):
-    ## i should change this to cross entropy loss   
+    ## i should change this to categorical cross entropy loss   
 
     loss_not = bce_loss(d_not, labels_v)
     loss_1 = bce_loss(d_1, labels_v)
