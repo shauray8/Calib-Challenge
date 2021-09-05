@@ -90,16 +90,18 @@ dir_checkpoint = "./pretrained"
 
 ## --------------------- BCE loss for every output layer --------------------- ##
 
+cce_loss = nn.CrossEntropyLoss(size_average=True)
+
 def multi_bce_loss(d_not, d1, d2, d3, d4, d5, d6, labels):
     ## i should change this to categorical cross entropy loss   
 
-    loss_not = bce_loss(d_not, labels_v)
-    loss_1 = bce_loss(d_1, labels_v)
-    loss_2 = bce_loss(d_2, labels_v)
-    loss_3 = bce_loss(d_3, labels_v)
-    loss_4 = bce_loss(d_4, labels_v)
-    loss_5 = bce_loss(d_5, labels_v)
-    loss_6 = bce_loss(d_6, labels_v)
+    loss_not = cce_loss(d_not, labels_v)
+    loss_1 = cce_loss(d_1, labels_v)
+    loss_2 = cce_loss(d_2, labels_v)
+    loss_3 = cce_loss(d_3, labels_v)
+    loss_4 = cce_loss(d_4, labels_v)
+    loss_5 = cce_loss(d_5, labels_v)
+    loss_6 = cce_loss(d_6, labels_v)
 
     loss = loss_not + loss_1 + loss_2 + loss_3 + loss_4 + loss_5 + loss_6
     print(f"0: {loss_not.data.item()}, 1: {loss_1.data.item()},2: {loss_2.data.item()},3: {loss_3.data.item()},4: {loss_4.data.item()},5: {loss_5.data.item()},6: {loss_6.data.item()}")
