@@ -180,8 +180,22 @@ def main():
     if device.type == 'cuda':
         model = torch.nn.DataParallel(model).cuda()
         cudnn.benchmark = True
+
+
+    writer = SummaryWriter(comment=f"LR_{lr}_BS_{batch_size}_SCALE_{img_scale}")
+    global_step = 0
     
     optimizer = torch.optim.Adam(model.parameters(), args.lr, betas=(args.momentum, args.beta), eps=1e-08, weight_decay=0)
+
+    print(f'''Starting training:
+        Epochs:          {epochs}
+        Batch size:      {batch_size}
+        Learning rate:   {lr}
+        Training size:   {train_set}
+        Validation size: {val_set}
+        Checkpoints:     {save_cp}
+        Device:          {device.type}
+        Images scaling:  {img_scale} ''')
     
     if args.evaluate:
         best_MSE = validation(val_loader, model, 0, output_writers, loss_function)
@@ -244,17 +258,20 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
         input_frame = input_frame.to(device)
         ground = ground.to(device)
 
-        optimizer.zero_grad()
+        ## optimizer.zero_grad()
+        [p.grad = None for p in net.parameters()]
 
         d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(inputs_frame)
         loss_2, loss = multi_bce_loss(d0 ,d1 ,d2 ,d3 ,d4 ,d5 ,d6 ,ground)
 
         loss.backward()
         optimizer.step()
-        train_writer.add_scalar('train_loss', (float(yaw_MSE.item()+pitch_MSE.item())*.5))
+        writer.add_scalar("loss/train", loss.item(), global_step)
 
         end = time.time()
         batch_time = end - start_time
+
+        global_step += 1
         
 ## --------------------- Stuff to display at output --------------------- ##
 
