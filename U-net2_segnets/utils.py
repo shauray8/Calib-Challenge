@@ -61,11 +61,11 @@ class comma10k_dataset(Dataset):
 
     def __getitem__(self, i):
         idx = self.ids[i]
-        self.img_file = glob.glob(self.imgs_dir + idx)
-        self.mask_file = glob.glob(self.masks_dir + idx)
+        self.img_file = glob.glob(self.imgs_dir+ "/" + idx)
+        self.mask_file = glob.glob(self.masks_dir+ "/" + idx)
 
         assert len(self.img_file) == 1, \
-                f'Either no image or multiple images found for the ID {idx}: {self.img_file} : {self.mask_file} : {(self.imgs_dir + idx + ".*")}'
+                f'Either no image or multiple images found for the ID {idx}: {self.img_file} : {self.mask_file} : {glob.glob(self.imgs_dir + idx)}'
         mask = Image.open(self.mask_file[0])
         img = Image.open(self.img_file[0])
         mask = mask.resize((image_size, image_size))
