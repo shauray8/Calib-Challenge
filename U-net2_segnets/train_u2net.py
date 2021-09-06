@@ -16,7 +16,7 @@ import torch.optim
 import torch.utils.data
 import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, random_split
 from torch.utils.tensorboard import SummaryWriter
 
 from model import *
@@ -41,7 +41,7 @@ parser.add_argument('--data', default="../../data/comma10k/comma10k", type=str,
 
 group = parser.add_mutually_exclusive_group()
 
-group.add_argument('--split_value', default=0.8, type=float,
+group.add_argument('--split_value', default=0.1, type=float,
                    help='test-val split proportion between 0 (only test) and 1 (only train), '
                         'will be overwritten if a split file is set')
 parser.add_argument('--arch', '-a', metavar='ARCH', default='Unet_square',
@@ -89,10 +89,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 dir_checkpoint = "./pretrained"
 img_scale = 320
 
-img1 = "../../data/comma10k/comma10k/img1"
-img2 = "../../data/comma10k/comma10k/img2"
-mask1 = "../../data/comma10k/comma10k/mask1"
-mask2 = "../../data/comma10k/comma10k/mask2"
+imgs = "E:\data\comma10k\comma10k\imgs"
+masks = "E:\data\comma10k\comma10k\masks"
 
 ## --------------------- BCE loss for every output layer --------------------- ##
 
@@ -128,7 +126,7 @@ def main():
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    writer = SummaryaWriter(comment=f"LR_{args.lr}_BS_{args.batch_size}_SCALE_{img_scale}")
+    writer = SummaryWriter(comment=f"LR_{args.lr}_BS_{args.batch_size}_SCALE_{img_scale}")
     output_writers = []
 
 ## --------------------- transforming the data --------------------- ##
@@ -138,7 +136,7 @@ def main():
             transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
             transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
             transforms.RandomGrayscale(p=0.1),
-            transforms.RandomPerspetive(distortion_scale=.6,p=.1),
+            transforms.RandomPerspective(distortion_scale=.6,p=.1),
             transforms.RandomAutocontrast(),
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.ToTensor(),
@@ -150,12 +148,11 @@ def main():
 
     print(f"=> fetching image pairs from {args.data}") 
 
-    dataset = comma10k_dataset(imgs_dir1 = img1, imgs_dir2 = img2, masks_dir1 = mask1, masks_dir2 =mask2 , transform = imput_transform)
+    dataset = comma10k_dataset(imgs_dir = imgs, masks_dir =masks , transform = input_transform)
     
-
-    val_set = int(len(dataset) * val_per)
-    train_set = len(dataset) - val_set
-    train_set, test_set = random_split(dataset, [train_set, val_set])
+    val_set = int(len(dataset) * args.split_value)
+    train_set_number = len(dataset) - val_set
+    train_set, test_set = random_split(dataset, [train_set_number, val_set])
 
     print(f"=> {len(test_set) + len(train_set)} samples found, {len(train_set)} train samples and {len(test_set)} test samples")
 
@@ -185,8 +182,6 @@ def main():
 ## --------------------- setting up the optimizer --------------------- ##
 
     print(f'=> settting {args.solver} optimizer')
-    param_groups = [{'params': model.bias_parameters(), 'weight_decay': args.bias_decay},
-            {'params': model.weight_parameters(), 'weight_decay': args.weight_decay}]
 
     if device.type == 'cuda':
         model = torch.nn.DataParallel(model).cuda()
@@ -198,12 +193,12 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), args.lr, betas=(args.momentum, args.beta), eps=1e-08, weight_decay=0)
 
     print(f'''Starting training:
-        Epochs:          {epochs}
-        Batch size:      {batch_size}
-        Learning rate:   {lr}
-        Training size:   {train_set}
+        Epochs:          {args.epochs}
+        Batch size:      {args.batch_size}
+        Learning rate:   {args.lr}
+        total_images:    {train_set_number + val_set}   
+        Training size:   {train_set_number}
         Validation size: {val_set}
-        Checkpoints:     {save_cp}
         Device:          {device.type}
         Images scaling:  {img_scale} ''')
     
@@ -221,7 +216,7 @@ def main():
     for epoch in (r := trange(args.start_epoch, args.epochs)):
 
         avg_loss_MSE, train_loss_MSE, display = train(train_loader, model,
-                optimizer, epoch+main_epoch, train_writer, yaw_loss, pitch_loss)
+                optimizer, epoch+main_epoch, writer)
         
         scheduler.step()
         train_writer.add_scalar('train mean MSE', avg_loss_MSE, epoch)
@@ -252,7 +247,7 @@ def main():
 
 ## --------------------- TRAIN function for the training loop --------------------- ##
 
-def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_loss):
+def train(train_loader, model, optimizer, epoch, train_writer):
     global n_iters, args
 
     epoch_size = len(train_loade+main_epochr) if args.epoch_size == 0 else min(len(train_loader), args.epoch_size)
@@ -263,16 +258,21 @@ def train(train_loader, model, optimizer, epoch, train_writer, yaw_loss, pitch_l
 
 ## --------------------- Training --------------------- ##
 
-    for i, (input_frame, ground) in enumerate(train_loader):
+    for batch in train_loader:
         start_time = time.time()
-        input_frame = input_frame.to(device)
-        ground = ground.to(device)
+        imgs = batch["image"]
+        true_masks = batch["mask"]
+
+        imgs = imgs.to(device=device, dtype=torch.float32)
+        mask_type = torch.float32 if net.n_classes == 1 else torch.long
+        true_masks = true_masks.to(device, dtype=mask_type)
 
         ## optimizer.zero_grad()
-        [p.grad = None for p in net.parameters()]
+        for p in net.parameters():
+            p.grad = None
 
-        d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(inputs_frame)
-        loss_2, loss = multi_bce_loss(d0 ,d1 ,d2 ,d3 ,d4 ,d5 ,d6 ,ground)
+        d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(imgs)
+        loss_2, loss = multi_bce_loss(d0 ,d1 ,d2 ,d3 ,d4 ,d5 ,d6 ,true_masks)
 
         loss.backward()
         optimizer.step()

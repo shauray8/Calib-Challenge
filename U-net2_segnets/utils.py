@@ -21,7 +21,7 @@ import argparse
 ## ---------------- For FlowNetCorr ---------------- ##
 
 class comma10k_dataset(Dataset):
-    def __init__(self, imgs_dir1, imgs_dir2, masks_dir1, masks_dir2, transform, scale=1):
+    def __init__(self, imgs_dir, masks_dir, transform, scale=1):
         self.imgs_dir = imgs_dir
         self.masks_dir = masks_dir
         self.transform = transform
@@ -29,16 +29,14 @@ class comma10k_dataset(Dataset):
 
         assert 0 < scale <= 1, 'scale must be between 0 and 1'
 
-        self.ids = [os.path.splitext(file)[0].split("_mask")[0] for file in listdir(masks_dir)
-                if not file.startswith('.')]
+#        self.ids = [os.path.splitext(file)[0].split("_mask")[0] for file in os.listdir(masks_dir)
+#                if not file.startswith('.')]
 
-        self.ids1 = [file for file in listdir(imgs_dir1)]
-        self.ids2 = [file for file in listdir(imgs_dir2)]
-        self.mask_ids1 = [file for file in listdir(masks_dir1)]
-        self.mask_ids2 = [file for file in listdir(masks_dir2)]
+        self.ids = [file for file in os.listdir(imgs_dir)]
+
+        print(len(self.ids))
+        print(f"Creating dataset with {len(self.ids)} example")
         
-        print(len(self.ids1+ self.ids2))
-        print(f"Creating dataset with {len(self.ids1 + self.ids2)} example")
 
     def __len__(self):
         return len(self.ids)
@@ -62,15 +60,12 @@ class comma10k_dataset(Dataset):
         return img_trans
 
     def __getitem__(self, i):
-        idx1 = self.ids1[i]
-        idx2 = self.ids2[i]
-        self.mask_file = glob(self.masks_dir1 + idx1 + ".*")
-        self.mask_file += glob(self.masks_dir2 + idx2 + ".*")
-        self.img_file = glob(self.imgs_dir1 + idx1 + ".*")
-        self.img_file += glob(self.imgs_dir2 + idx2 + ".*")
+        idx = self.ids[i]
+        self.img_file = glob.glob(self.imgs_dir + idx + ".*")
+        self.mask_file = glob.glob(self.masks_dir + idx + ".*")
 
         assert len(self.img_file) == 1, \
-            f'Either no image or multiple images found for the ID {idx}: {self.img_file}'
+                f'Either no image or multiple images found for the ID {idx}: {self.img_file} : {self.mask_file} : {glob.gllob(self.imgs_dir + idx)}'
         mask = Image.open(self.mask_file[0])
         img = Image.open(self.img_file[0])
         mask = mask.resize((image_size, image_size))
