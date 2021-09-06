@@ -89,6 +89,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 dir_checkpoint = "./pretrained"
 img_scale = 320
 
+img1 = "../../data/comma10k/comma10k/img1"
+img2 = "../../data/comma10k/comma10k/img2"
+mask1 = "../../data/comma10k/comma10k/mask1"
+mask2 = "../../data/comma10k/comma10k/mask2"
+
 ## --------------------- BCE loss for every output layer --------------------- ##
 
 cce_loss = nn.CrossEntropyLoss(size_average=True)
@@ -133,9 +138,9 @@ def main():
             transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
             transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
             transforms.RandomGrayscale(p=0.1),
-            transforms.RandomPerspetive(distortion_scale=.6,p=.1)
-            transforms.RandomAutocontrast()
-            transforms.RandomHorizontalFlip(p=0.5)
+            transforms.RandomPerspetive(distortion_scale=.6,p=.1),
+            transforms.RandomAutocontrast(),
+            transforms.RandomHorizontalFlip(p=0.5),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
             transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
@@ -145,7 +150,8 @@ def main():
 
     print(f"=> fetching image pairs from {args.data}") 
 
-    dataset = comma10k_dataset(imgs_dir1 = , imgs_dir2 = , masks_dir1 = , masks_dir2 = , transform = imput_transform, scale = img_scale)
+    dataset = comma10k_dataset(imgs_dir1 = img1, imgs_dir2 = img2, masks_dir1 = mask1, masks_dir2 =mask2 , transform = imput_transform)
+    
 
     val_set = int(len(dataset) * val_per)
     train_set = len(dataset) - val_set

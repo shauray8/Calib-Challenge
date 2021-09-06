@@ -179,50 +179,6 @@ def Transformed_data(root, transform=None, split=None):
 
     return train_dataset, test_dataset
 
-
-## ---------------- Buy new RAM! I have to break stuff into images and save them ---------------- ##
-
-def frame_by_frame(input):
-    frames = []
-    for j in input:
-        cap= cv2.VideoCapture(j)
-        i=0
-        while(cap.isOpened()):
-            ret, frame = cap.read()
-            if ret == False:
-                break
-            frames.append(frame)
-            i+=1
-
-        cap.release()
-        cv2.destroyAllWindows()
-        frames.append(torch.zeros(frames[0].shape))
-        print("inner",len(frames))
-        final_images = [torch.cat((torch.tensor(frames[i]), torch.tensor(frames[i+1])), 1) for i in range(len(frames))]
-    
-    print(len(final_image))
-    return final_image
-
-## ---------------- This thing is no good but for now i dont think i have a better idea ---------------- ##
-
-def break_into_images():
-    input_vid = sorted(glob.glob(os.path.join('../labeled') + '/*.HEVC'))
-    folder = 0
-    
-    for i in input_vid:
-        vidcap = cv2.VideoCapture(i)
-        success,image = vidcap.read()
-        count = 0
-        
-        while success:
-          ount = "0"*(4 - len(str(count))) + str(count)
-          cv2.imwrite(f"../../data/calib_image_data/{folder}/frame{ount}.jpg", image)     # save frame as JPEG file      
-          success,image = vidcap.read()
-          print('Read a new frame: ', success, folder, ount)
-          count += 1
-          
-        folder += 1
-
 def save_checkpoint(state, is_best, save_path, filename='checkpoint.pkl'):
     with open(os.path.join(save_path, filename), 'wb') as handle:
         pickle.dump(state, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -230,16 +186,6 @@ def save_checkpoint(state, is_best, save_path, filename='checkpoint.pkl'):
         shutil.copyfile(os.path.join(save_path,filename), os.path.join(save_path,'model_best.pth.tar'))
 
 
-## ---------------- making ranges for yaw and pitch using my stats skills ;^) ---------------- ##
-
-def onehot_vector(item, classes):
-    onehot = np.zeros(len(classes))
-    for i in range(len(classes)):
-        if item <= classes[i]:
-            onehot[i] = 1
-            break
-
-    return onehot
 
 if __name__ == "__main__":
 
