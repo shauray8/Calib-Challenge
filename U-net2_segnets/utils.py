@@ -7,7 +7,7 @@ import cv2
 import torch
 import scipy.ndimage as ndimage
 from torch.utils.data import DataLoader, Dataset
-from PIL import Image
+from PIL import Image, ImageOps
 from imageio import imread
 import pickle
 
@@ -42,42 +42,47 @@ class comma10k_dataset(Dataset):
         return len(self.ids)
 
     @classmethod
-    def preprocess(cls, pil_image, scale):
-        w, h = pil_image.size
+    def preprocess(cls, pil_image, scale=1):
+        w, h= pil_image.size
         newW, newH = int(scale * w), int(scale * h)
         pil_image = pil_image.resize((newW, newH))
+        print(pil_image.size)
 
         img_nd = np.array(pil_image)
 
         if len(img_nd.shape) == 2:
             img_nd = np.expand_dims(img_nd, axis=2)
+            print("f")
 
         img_trans = img_nd.transpose((2,0,1))
         if img_trans.max() > 1:
             img_trans = img_trans / 255
 
-        
         return img_trans
 
     def __getitem__(self, i):
         idx = self.ids[i]
         self.img_file = glob.glob(self.imgs_dir+ "/" + idx)
         self.mask_file = glob.glob(self.masks_dir+ "/" + idx)
+        H, W = 1928, 1208
 
         assert len(self.img_file) == 1, \
-                f'Either no image or multiple images found for the ID {idx}: {self.img_file} : {self.mask_file} : {glob.glob(self.imgs_dir + idx)}'
+                f'Either no image or multiple images found for the ID {idx}: {self.img_file} : {self.mask_file} : {glob.glob(self.imgs_dir+ "/" + idx)}'
         mask = Image.open(self.mask_file[0])
         img = Image.open(self.img_file[0])
-        mask = mask.resize((image_size, image_size))
-        img = img.resize((image_size, image_size))
+        mask = mask.resize((H//6, W//6))
+        img = img.resize((H//6, W//6))
+        print(img.size)
+        print(mask.size)
+        print("------------------------------------>",mask.size)
 
-#        img = self.preprocess(ImageOps.grayscale((img)), self.scale)
-#        mask = self.preprocess(ImageOps.grayscale((mask)), self.scale)
+        img = self.preprocess(img, self.scale)
+        mask = self.preprocess(mask, self.scale)
         print('dataset preprocessing')
         
         return {
-            'image': torch.from_numpy((img)).type(torch.FloatTensor),
-            'mask': torch.from_numpy((mask)).type(torch.FloatTensor)
+            'image': torch.from_numpy((np.array(img))).type(torch.FloatTensor),
+            'mask': torch.from_numpy((np.array(mask))).type(torch.FloatTensor)
         }
 
 ## ---------------- Make Dataset --> [[img1, img2], [yaw, pitch]] ---------------- ##
