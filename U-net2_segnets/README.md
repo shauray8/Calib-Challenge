@@ -22,3 +22,7 @@ Comma10k is a collection of 10,000 PNGs of real driving captured from the comma 
 ### And this is what the mask looks like ! (1920 x 1208)
 ![image](../Docs/sample_mask.png)
 
+
+
+### tests
+I will test on my custom dataset and comma ai's calib challange dataset !
