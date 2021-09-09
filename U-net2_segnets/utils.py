@@ -52,7 +52,7 @@ class comma10k_dataset(Dataset):
 
         if len(img_nd.shape) == 2:
             img_nd = np.expand_dims(img_nd, axis=2)
-            print("f")
+            print("--------------------------------------------------f")
 
         img_trans = img_nd.transpose((2,0,1))
         if img_trans.max() > 1:
