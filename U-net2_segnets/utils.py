@@ -71,12 +71,12 @@ class comma10k_dataset(Dataset):
         img = Image.open(self.img_file[0])
         mask = mask.resize((H//6, W//6))
         img = img.resize((H//6, W//6))
-        print(img.size)
-        print(mask.size)
         print("------------------------------------>",mask.size)
 
         img = self.preprocess(img, self.scale)
         mask = self.preprocess(mask, self.scale)
+        print(img.size)
+        print(mask.size)
         print('dataset preprocessing')
         
         return {
