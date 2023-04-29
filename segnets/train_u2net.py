@@ -255,10 +255,13 @@ def train(train_loader, model, optimizer, epoch, train_writer):
     losses = []
     model.train()
     end = time.time()
+    print("inside train")
 
 ## --------------------- Training --------------------- ##
 
     for batch in train_loader:
+
+        print("inside train")
         start_time = time.time()
         imgs = batch["image"]
         true_masks = batch["mask"]
@@ -267,6 +270,7 @@ def train(train_loader, model, optimizer, epoch, train_writer):
         mask_type = torch.float32 if net.n_classes == 1 else torch.long
         true_masks = true_masks.to(device, dtype=mask_type)
 
+        print("inside train")
         ## optimizer.zero_grad()
         for p in net.parameters():
             p.grad = None

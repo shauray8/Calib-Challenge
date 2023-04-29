@@ -21,5 +21,5 @@ imgs_dir = "E:\data\comma10k\comma10k\imgs"
 
 ids = [file for file in os.listdir(imgs_dir)]
 
-
+print(len(ids))
 
