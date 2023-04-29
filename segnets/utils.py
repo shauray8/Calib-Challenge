@@ -48,7 +48,8 @@ class comma10k_dataset(Dataset):
         pil_image = pil_image.resize((newW, newH))
         print(pil_image.size)
 
-        img_nd = np.array(pil_image)
+        img_nd = np.asarray(pil_image)
+        print(img_nd.shape)
 
         if len(img_nd.shape) == 2:
             img_nd = np.expand_dims(img_nd, axis=2)
@@ -72,6 +73,7 @@ class comma10k_dataset(Dataset):
         mask = mask.resize((H//6, W//6))
         img = img.resize((H//6, W//6))
         print("------------------------------------>",mask.size)
+        print(self.mask_file[0])
 
         img = self.preprocess(img, self.scale)
         mask = self.preprocess(mask, self.scale)
