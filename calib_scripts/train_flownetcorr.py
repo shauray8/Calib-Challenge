@@ -22,6 +22,11 @@ from FlownetCorr import *
 from utils import *
 import FlownetCorr
 
+torch.backends.cuda.matmul.allow_tf32 = False
+torch.backends.cudnn.benchmark = True
+torch.backends.cudnn.deterministic = False
+torch.backends.cudnn.allow_tf32 = True
+
 ## -------------------- checking callable functions from FlowNetCorr -------------------- ##
 
 def callable():
