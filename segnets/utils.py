@@ -43,13 +43,11 @@ class comma10k_dataset(Dataset):
 
     @classmethod
     def preprocess(cls, pil_image, scale=1):
-        w, h= pil_image.size
+        w, h, d= pil_image.shape
         newW, newH = int(scale * w), int(scale * h)
-        pil_image = pil_image.resize((newW, newH))
-        print(pil_image.size)
+        pil_image = pil_image.reshape((newW, newH, d))
 
-        img_nd = np.asarray(pil_image)
-        print(img_nd.shape)
+        img_nd = pil_image
 
         if len(img_nd.shape) == 2:
             img_nd = np.expand_dims(img_nd, axis=2)
@@ -61,6 +59,7 @@ class comma10k_dataset(Dataset):
         return img_trans
 
     def __getitem__(self, i):
+
         idx = self.ids[i]
         self.img_file = glob.glob(self.imgs_dir+ "/" + idx)
         self.mask_file = glob.glob(self.masks_dir+ "/" + idx)
@@ -68,17 +67,12 @@ class comma10k_dataset(Dataset):
 
         assert len(self.img_file) == 1, \
                 f'Either no image or multiple images found for the ID {idx}: {self.img_file} : {self.mask_file} : {glob.glob(self.imgs_dir+ "/" + idx)}'
-        mask = Image.open(self.mask_file[0])
-        img = Image.open(self.img_file[0])
-        mask = mask.resize((H//6, W//6))
-        img = img.resize((H//6, W//6))
-        print("------------------------------------>",mask.size)
-        print(self.mask_file[0])
+        img = np.asarray(Image.open(self.img_file[0]).resize((H//6,W//6)))
+        mask = np.asarray(Image.open(self.mask_file[0]).resize((H//6,W//6)))
+        print(f"img {img.shape} == mask {mask.shape}")
 
         img = self.preprocess(img, self.scale)
         mask = self.preprocess(mask, self.scale)
-        print(img.size)
-        print(mask.size)
         print('dataset preprocessing')
         
         return {

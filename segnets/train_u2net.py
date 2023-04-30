@@ -56,7 +56,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('--epoch-size', default=1000, type=int, metavar='N',
                     help='manual epoch size (will match dataset size if set to 0)')
-parser.add_argument('-b', '--batch-size', default=16, type=int,
+parser.add_argument('-b', '--batch-size', default=4, type=int,
                     metavar='N', help='mini-batch size')
 parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
                     metavar='LR', help='initial learning rate')
@@ -261,19 +261,16 @@ def train(train_loader, model, optimizer, epoch, train_writer):
 
     for batch in train_loader:
 
-        print("inside train")
+        print("more inside train")
         start_time = time.time()
         imgs = batch["image"]
         true_masks = batch["mask"]
 
         imgs = imgs.to(device=device, dtype=torch.float32)
-        mask_type = torch.float32 if net.n_classes == 1 else torch.long
-        true_masks = true_masks.to(device, dtype=mask_type)
+        true_masks = true_masks.to(device)
 
         print("inside train")
-        ## optimizer.zero_grad()
-        for p in net.parameters():
-            p.grad = None
+        optimizer.zero_grad()
 
         d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(imgs)
         loss_2, loss = multi_bce_loss(d0 ,d1 ,d2 ,d3 ,d4 ,d5 ,d6 ,true_masks)
