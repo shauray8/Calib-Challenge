@@ -56,7 +56,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('--epoch-size', default=1000, type=int, metavar='N',
                     help='manual epoch size (will match dataset size if set to 0)')
-parser.add_argument('-b', '--batch-size', default=8, type=int,
+parser.add_argument('-b', '--batch-size', default=4, type=int,
                     metavar='N', help='mini-batch size')
 parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
                     metavar='LR', help='initial learning rate')
@@ -96,7 +96,7 @@ masks = "E:\data\comma10k\comma10k\masks"
 
 cce_loss = nn.CrossEntropyLoss(size_average=True)
 
-def multi_bce_loss(d_not, d1, d2, d3, d4, d5, d6, labels):
+def multi_bce_loss(d_not, d_1, d_2, d_3, d_4, d_5, d_6, labels_v):
     ## i should change this to categorical cross entropy loss   
 
     loss_not = cce_loss(d_not, labels_v)
@@ -126,7 +126,6 @@ def main():
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    writer = SummaryWriter(comment=f"LR_{args.lr}_BS_{args.batch_size}_SCALE_{img_scale}")
     output_writers = []
 
 ## --------------------- transforming the data --------------------- ##
@@ -215,23 +214,21 @@ def main():
     print("=> training go look tensorboard for more stuff")
     for epoch in (r := trange(args.start_epoch, args.epochs)):
 
-        avg_loss_MSE, train_loss_MSE, display = train(train_loader, model,
-                optimizer, epoch+main_epoch, writer)
+        #avg_loss_MSE, train_loss_MSE, display = train(train_loader, model,
+        best_MSE = train(train_loader, model,optimizer, epoch+main_epoch)
         
         scheduler.step()
-        train_writer.add_scalar('train mean MSE', avg_loss_MSE, epoch)
 
 ## --------------------- Validation Step --------------------- ##
         
-        with torch.no_grad():
-            MSE_loss_val, display_val = validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss)
-        test_writer.add_scalar('validation mean MSE', MSE_loss_val, epoch)
+       # with torch.no_grad():
+       #     MSE_loss_val, display_val = validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss)
 
-        if best_MSE < 0:
-            best_MSE = MSE_loss_val
+       # if best_MSE < 0:
+       #     best_MSE = MSE_loss_val
 
-        is_best = MSE_loss_val < best_MSE
-        best_MSE = min(MSE_loss_val, best_MSE)
+       # is_best = MSE_loss_val < best_MSE
+       # best_MSE = min(MSE_loss_val, best_MSE)
 
 ## --------------------- Saving on every epoch --------------------- ##
 
@@ -241,27 +238,25 @@ def main():
             'state_dict': model.module.state_dict(),
             'best_EPE': best_MSE,
             'div_flow': args.div_flow
-        }, is_best, save_path)
+        }, save_path)
         
-        r.set_description(f"train_stuff: {display}, epoch: {epoch+1}, val_Stuff: {display_val}")
+        #r.set_description(f"train_stuff: {display}, epoch: {epoch+1}, val_Stuff: {display_val}")
 
 ## --------------------- TRAIN function for the training loop --------------------- ##
 
-def train(train_loader, model, optimizer, epoch, train_writer):
+def train(train_loader, model, optimizer, epoch):
     global n_iters, args
 
-    epoch_size = len(train_loade+main_epochr) if args.epoch_size == 0 else min(len(train_loader), args.epoch_size)
+    epoch_size = len(train_loader+main_epoch) if args.epoch_size == 0 else min(len(train_loader), args.epoch_size)
 
     losses = []
     model.train()
     end = time.time()
-    print("inside train")
 
 ## --------------------- Training --------------------- ##
 
-    for batch in train_loader:
+    for i,batch in enumerate(train_loader):
 
-        print("more inside train")
         start_time = time.time()
         imgs = batch["image"]
         true_masks = batch["mask"]
@@ -269,34 +264,35 @@ def train(train_loader, model, optimizer, epoch, train_writer):
         imgs = imgs.to(device=device, dtype=torch.float32)
         true_masks = true_masks.to(device)
 
-        print("inside train")
         #optimizer.zero_grad()
         for p in model.parameters():
             p.grad = None
 
         d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(imgs)
-        loss_2, loss = multi_bce_loss(d0 ,d1 ,d2 ,d3 ,d4 ,d5 ,d6 ,true_masks)
+        loss_2, loss = multi_bce_loss(d_not, d_1 ,d_2 ,d_3 ,d_4 ,d_5 ,d_6 ,true_masks)
 
         loss.backward()
         optimizer.step()
-        writer.add_scalar("loss/train", loss.item(), global_step)
 
         end = time.time()
         batch_time = end - start_time
 
-        global_step += 1
+        #global_step += 1
         
-## --------------------- Stuff to display at output --------------------- ##
+## --------------------- Stuff to display at output (make this good)--------------------- ##
 
-        if i % args.print_freq == 0:
-            display = (' Epoch: [{0}][{1}/{2}] ; Time {3} ; Avg MSELoss {4} ; yaw_MSE {5} ; pitch_MSE {6}').format(epoch, 
-                    i, epoch_size, batch_time, sum(losses)/len(losses), yaw_MSE.item(), pitch_MSE.item())
-            print(display)
-        n_iters += 1
-        if i >= epoch_size:
-            break
+       # if i % args.print_freq == 0:
+       #     display = (' Epoch: [{0}][{1}/{2}] ; Time {3} ; Avg MSELoss {4} ; yaw_MSE {5} ; pitch_MSE {6}').format(epoch, 
+       #             i, epoch_size, batch_time, sum(losses)/len(losses), yaw_MSE.item(), pitch_MSE.item())
+       #     print(display)
+       # n_iters += 1
+       # if i >= epoch_size:
+       #     break
     
-    return sum(losses)/len(losses), loss.item() , display
+    #return sum(losses)/len(losses), loss.item()
+    return loss.item()
+
+## --------------------- Validation (still incompelete) --------------------- ##
 
 def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
     global args

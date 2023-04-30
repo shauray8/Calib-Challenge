@@ -43,14 +43,16 @@ class comma10k_dataset(Dataset):
 
     @classmethod
     def preprocess(cls, pil_image, scale=1):
-        w, h, d= pil_image.shape
+        try:
+            w, h, d = pil_image.shape
+        except:
+            w, h = pil_image.shape
+            d = 1
         newW, newH = int(scale * w), int(scale * h)
-        pil_image = pil_image.reshape((newW, newH, d))
+        img_nd = pil_image.reshape((newW, newH, d))
 
-        img_nd = pil_image
-
-        if img_nd.shape[2] == 3:
-            img_nd = np.concatenate((img_nd, np.zeros((w,h,1))), axis=2)
+        while img_nd.shape[2] < 4:
+                img_nd = np.concatenate((img_nd, np.zeros((w,h,1))), axis=2)
 
         img_trans = img_nd.transpose((2,0,1))
         if img_trans.max() > 1:
@@ -67,8 +69,8 @@ class comma10k_dataset(Dataset):
 
         assert len(self.img_file) == 1, \
                 f'Either no image or multiple images found for the ID {idx}: {self.img_file} : {self.mask_file} : {glob.glob(self.imgs_dir+ "/" + idx)}'
-        img = np.asarray(Image.open(self.img_file[0]).resize((H//6,W//6)))
-        mask = np.asarray(Image.open(self.mask_file[0]).resize((H//6,W//6)))
+        img = np.asarray(Image.open(self.img_file[0]).resize((H//16,W//16)))
+        mask = np.asarray(Image.open(self.mask_file[0]).resize((H//16,W//16)))
 
         img = self.preprocess(img, self.scale)
         mask = self.preprocess(mask, self.scale)
