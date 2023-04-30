@@ -84,8 +84,8 @@ parser.add_argument('--milestones', default=[100,150,200], metavar='N', nargs='*
 
 best_MSE = -1
 n_iters = 0
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#device = torch.device("cpu")
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 dir_checkpoint = "./pretrained"
 img_scale = 320
 
@@ -166,7 +166,7 @@ def main():
 
 ## --------------------- MODEL from model.py --------------------- ##
     
-    model = Unet_square(3,5).to(device)
+    model = Unet_square(4,4).to(device)
 
     if args.pretrained is not None:
         with open(args.pretrained, 'rb') as pickle_file:

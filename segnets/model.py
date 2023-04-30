@@ -19,7 +19,7 @@ class Green_block(nn.Module):
 
     def forward(self, x):
 
-        return self.relu_g(self.bn_g(self.conv_g(x)))
+        return self.relu_g(self.bn_g(self.conv1_g(x)))
 
 
 class En_De_1(nn.Module):    
@@ -337,6 +337,7 @@ class Unet_square(nn.Module):
 
     def forward(self, x):
 
+        print(x.shape)
         hx_1 = self.cube_1(x)
         hx = self.pool_12(hx_1)
 
