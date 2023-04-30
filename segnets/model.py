@@ -60,21 +60,21 @@ class En_De_1(nn.Module):
         hx_in = self.conv_input(x)
 
         hx_1 = self.conv_1(hx_in)
-        hx1 = self.pool_1(hx_1)
+        hx = self.pool_1(hx_1)
 
         hx_2 = self.conv_2(hx1)
-        hx2 = self.pool_2(hx_2)
+        hx = self.pool_2(hx_2)
         
         hx_3 = self.conv_3(hx2)
-        hx3 = self.pool_3(hx_3)
+        hx = self.pool_3(hx_3)
         
         hx_4 = self.conv_4(hx3)
-        hx4 = self.pool_4(hx_4)
+        hx = self.pool_4(hx_4)
 
         hx_5 = self.conv_5(hx4)
-        hx5 = self.pool_5(hx_5)
+        hx = self.pool_5(hx_5)
         
-        hx_6 = self.conv_6(hx5)
+        hx_6 = self.conv_6(hx)
 
         hx_7 = self.conv_7(hx_6)
 
