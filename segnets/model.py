@@ -5,9 +5,8 @@ import torch.nn.functional as F
 # --------------- U square Net architecture here the research paper https://arxiv.org/pdf/2005.09007v2.pdf --------------- #
 
 
-def _upsample(self):
-        pass
-
+def _upsample(src, tar):
+    return F.upsample(src,size=tar.shape[2:],mode='bilinear')
     
 class Green_block(nn.Module):
     def __init__(self, in_channel=3, out_channel=3, rate=1):
@@ -19,16 +18,17 @@ class Green_block(nn.Module):
 
     def forward(self, x):
 
+        print("asdasdfasfd",x.shape)
         return self.relu_g(self.bn_g(self.conv1_g(x)))
 
 
 class En_De_1(nn.Module):    
-    def __init__(self, in_channel=3, out_channel=3, mid_channel=12):
+    def __init__(self, in_channel=3, mid_channel=12, out_channel=3):
         super(En_De_1, self).__init__()
 
         self.conv_input = Green_block(in_channel, out_channel, rate=1)
 
-        self.conv_1 = Green_block(in_channel, mid_channel, rate=1)
+        self.conv_1 = Green_block(out_channel, mid_channel, rate=1)
         self.pool_1 = nn.MaxPool2d(2, stride=2, ceil_mode=True)
 
         self.conv_2 = Green_block(mid_channel, mid_channel, rate=1)
@@ -55,31 +55,33 @@ class En_De_1(nn.Module):
         self.conv_1d = Green_block(mid_channel*2, mid_channel, rate=1)
 
     def forward(self, x):
+
+        print("2st - asdasdfasfd",x.shape)
         hx_in = self.conv_input(x)
 
         hx_1 = self.conv_1(hx_in)
-        hx = self.pool_1(hx_1)
+        hx1 = self.pool_1(hx_1)
 
-        hx_2 = self.conv_2(hx)
-        hx = self.pool_2(hx_2)
+        hx_2 = self.conv_2(hx1)
+        hx2 = self.pool_2(hx_2)
         
-        hx_3 = self.conv_3(hx)
-        hx = self.pool_3(hx_3)
+        hx_3 = self.conv_3(hx2)
+        hx3 = self.pool_3(hx_3)
         
-        hx_4 = self.conv_4(hx)
-        hx = self.pool_4(hx_4)
+        hx_4 = self.conv_4(hx3)
+        hx4 = self.pool_4(hx_4)
 
-        hx_5 = self.conv_5(hx)
-        hx = self.pool_5(hx_5)
+        hx_5 = self.conv_5(hx4)
+        hx5 = self.pool_5(hx_5)
         
-        hx_6 = self.conv_6(hx)
+        hx_6 = self.conv_6(hx5)
 
         hx_7 = self.conv_7(hx_6)
 
         hx_6d = self.conv_6d(torch.cat((hx_7, hx_6),1))
         hx_6d_up = _upsample(hx_6d, hx5)
 
-        hx_5d =self.conv_5d(torch.cat((hx_6d_up, hx_5),1))
+        hx_5d = self.conv_5d(torch.cat((hx_6d_up, hx_5),1))
         hx_5d_up = _upsample(hx_5d, hx4)
 
         hx_4d = self.conv_4d(torch.cat((hx_5d_up, hx_4),1))
@@ -97,7 +99,7 @@ class En_De_1(nn.Module):
 
 
 class En_De_2(nn.Module):    
-    def __init__(self, in_channel=3, out_channel=3, mid_channel=12):
+    def __init__(self, in_channel=3, mid_channel=12, out_channel=3):
         super(En_De_2, self).__init__()
 
         self.conv_input = Green_block(in_channel, out_channel, rate=1)
@@ -163,7 +165,7 @@ class En_De_2(nn.Module):
 
 
 class En_De_3(nn.Module):    
-    def __init__(self, in_channel=3, out_channel=3, mid_channel=12):
+    def __init__(self, in_channel=3, mid_channel=12, out_channel=3):
         super(En_De_3, self).__init__()
 
         self.conv_input = Green_block(in_channel, out_channel, rate=1)
@@ -219,7 +221,7 @@ class En_De_3(nn.Module):
 
 
 class En_De_4(nn.Module):    
-    def __init__(self, in_channel=3, out_channel=3, mid_channel=12):
+    def __init__(self, in_channel=3, mid_channel=12, out_channel=3):
         super(En_De_4, self).__init__()
 
         self.conv_input = Green_block(in_channel, out_channel, rate=1)
@@ -239,6 +241,8 @@ class En_De_4(nn.Module):
         self.conv_1d = Green_block(mid_channel*2, out_channel, rate=1)
 
     def forward(self, x):
+
+        print("3st - asdasdfasfd",x.shape)
         hx_in = self.conv_input(x)
 
         hx_1 = self.conv_1(hx_in)
@@ -264,7 +268,7 @@ class En_De_4(nn.Module):
 
 
 class En_De_4F(nn.Module):    
-    def __init__(self, in_channel=3, out_channel=3, mid_channel=12):
+    def __init__(self, in_channel=3, mid_channel=12, out_channel=3):
         super(En_De_4F, self).__init__()
 
         self.conv_input = Green_block(in_channel, out_channel, rate=1)
@@ -337,7 +341,7 @@ class Unet_square(nn.Module):
 
     def forward(self, x):
 
-        print(x.shape)
+        print("1st - asdasdfasfd",x.shape)
         hx_1 = self.cube_1(x)
         hx = self.pool_12(hx_1)
 

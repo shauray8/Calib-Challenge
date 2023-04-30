@@ -72,7 +72,7 @@ class comma10k_dataset(Dataset):
 
         img = self.preprocess(img, self.scale)
         mask = self.preprocess(mask, self.scale)
-        print(f"img {img.shape} == mask {mask.shape}")
+        #print(f"img {img.shape} == mask {mask.shape}")
         
         return {
             'image': torch.from_numpy((np.array(img))).type(torch.FloatTensor),
