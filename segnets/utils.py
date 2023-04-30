@@ -49,8 +49,8 @@ class comma10k_dataset(Dataset):
 
         img_nd = pil_image
 
-        if len(img_nd.shape) == 2:
-            img_nd = np.expand_dims(img_nd, axis=2)
+        if img_nd.shape[2] == 3:
+            img_nd = np.concatenate((img_nd, np.zeros((w,h,1))), axis=2)
 
         img_trans = img_nd.transpose((2,0,1))
         if img_trans.max() > 1:
@@ -69,11 +69,10 @@ class comma10k_dataset(Dataset):
                 f'Either no image or multiple images found for the ID {idx}: {self.img_file} : {self.mask_file} : {glob.glob(self.imgs_dir+ "/" + idx)}'
         img = np.asarray(Image.open(self.img_file[0]).resize((H//6,W//6)))
         mask = np.asarray(Image.open(self.mask_file[0]).resize((H//6,W//6)))
-        print(f"img {img.shape} == mask {mask.shape}")
 
         img = self.preprocess(img, self.scale)
         mask = self.preprocess(mask, self.scale)
-        print('dataset preprocessing')
+        print(f"img {img.shape} == mask {mask.shape}")
         
         return {
             'image': torch.from_numpy((np.array(img))).type(torch.FloatTensor),
