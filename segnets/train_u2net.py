@@ -262,7 +262,7 @@ def train(train_loader, model, optimizer, epoch):
         true_masks = batch["mask"]
 
         imgs = imgs.to(device=device, dtype=torch.float32)
-        true_masks = true_masks.to(device)
+        true_masks = true_masks.to(device, dtype=torch.float32)
 
         #optimizer.zero_grad()
         for p in model.parameters():
@@ -305,7 +305,7 @@ def validation(val_loader, model, epoch):
         true_masks = batch["mask"]
 
         imgs = imgs.to(device=device, dtype=torch.float32)
-        true_masks = true_masks.to(device)
+        true_masks = true_masks.to(device, dtype=torch.float32)
 
         d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(imgs)
         loss_2, loss = multi_bce_loss(d_not, d_1 ,d_2 ,d_3 ,d_4 ,d_5 ,d_6 ,true_masks)
@@ -319,6 +319,4 @@ def validation(val_loader, model, epoch):
     return loss_2.item(), loss.item(), display_val
         
 if __name__ == "__main__":
-    torch.cuda.memory_summary(device=None, abbreviated=False)
-    torch.cuda.empty_cache()
     main()
