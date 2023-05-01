@@ -24,6 +24,7 @@ from torch.utils.tensorboard import SummaryWriter
 from model import *
 from utils import *
 import model
+from snet_model import *
 
 ## -------------------- checking callable functions from FlowNetCorr -------------------- ##
 
@@ -81,6 +82,7 @@ parser.add_argument('--no-date', action='store_true',default=False,
 parser.add_argument('--div-flow', default=20,
                     help='value by which flow will be divided. Original value is 20 but 1 with batchNorm gives good results')
 parser.add_argument('--milestones', default=[100,150,200], metavar='N', nargs='*', help='epochs at which learning rate is divided by 2')
+parser.add_argument('--model', default=Unet_square(4,4), help='which model to use')
 
 ## ----------------------- global variables ----------------------- ##
 
@@ -110,7 +112,7 @@ def multi_bce_loss(d_not, d_1, d_2, d_3, d_4, d_5, d_6, labels_v):
     loss_6 = cce_loss(d_6, labels_v)
 
     loss = loss_not + loss_1 + loss_2 + loss_3 + loss_4 + loss_5 + loss_6
-#    print(f"0: {loss_not.data.item()}, 1: {loss_1.data.item()},2: {loss_2.data.item()},3: {loss_3.data.item()},4: {loss_4.data.item()},5: {loss_5.data.item()},6: {loss_6.data.item()}")
+    print(f"0: {loss_not.data.item()}, 1: {loss_1.data.item()},2: {loss_2.data.item()},3: {loss_3.data.item()},4: {loss_4.data.item()},5: {loss_5.data.item()},6: {loss_6.data.item()}")
 
     return loss_not, loss
 
@@ -167,7 +169,8 @@ def main():
 
 ## --------------------- MODEL from model.py --------------------- ##
     
-    model = Unet_square(4,4).to(device)
+   #model = Unet_square(4,4).to(device)
+    model = args.model.to(device)
 
     if args.pretrained is not None:
         with open(args.pretrained, 'rb') as pickle_file:
