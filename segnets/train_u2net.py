@@ -8,6 +8,8 @@ import numpy as np
 import datetime
 from tqdm import trange
 import pickle
+import warnings 
+warnings.filterwarnings("ignore")
 
 import torch
 import torch.nn.functional as F
@@ -56,7 +58,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('--epoch-size', default=1000, type=int, metavar='N',
                     help='manual epoch size (will match dataset size if set to 0)')
-parser.add_argument('-b', '--batch-size', default=4, type=int,
+parser.add_argument('-b', '--batch-size', default=16, type=int,
                     metavar='N', help='mini-batch size')
 parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
                     metavar='LR', help='initial learning rate')
@@ -84,8 +86,8 @@ parser.add_argument('--milestones', default=[100,150,200], metavar='N', nargs='*
 
 best_MSE = -1
 n_iters = 0
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cpu")
 dir_checkpoint = "./pretrained"
 img_scale = 320
 
@@ -108,7 +110,7 @@ def multi_bce_loss(d_not, d_1, d_2, d_3, d_4, d_5, d_6, labels_v):
     loss_6 = cce_loss(d_6, labels_v)
 
     loss = loss_not + loss_1 + loss_2 + loss_3 + loss_4 + loss_5 + loss_6
-    print(f"0: {loss_not.data.item()}, 1: {loss_1.data.item()},2: {loss_2.data.item()},3: {loss_3.data.item()},4: {loss_4.data.item()},5: {loss_5.data.item()},6: {loss_6.data.item()}")
+#    print(f"0: {loss_not.data.item()}, 1: {loss_1.data.item()},2: {loss_2.data.item()},3: {loss_3.data.item()},4: {loss_4.data.item()},5: {loss_5.data.item()},6: {loss_6.data.item()}")
 
     return loss_not, loss
 
@@ -122,7 +124,7 @@ def main():
     save_path = f'{args.arch}_{args.solver}_{args.epochs}_bs{args.batch_size}_time{timestamp}_lr{args.lr}'
         
     save_path = os.path.join("./pretrained/", save_path)
-    print(f"=> will save everything to {save_path}")
+    print(f"=> saving everything to {save_path}")
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
@@ -159,7 +161,7 @@ def main():
             train_set, batch_size = args.batch_size, num_workers=args.workers,
             pin_memory=True, shuffle=True)
 
-    validation_loader = DataLoader(
+    val_loader = DataLoader(
             test_set, batch_size=args.batch_size, num_workers=args.workers,
             pin_memory=True, shuffle = False)
 
@@ -176,7 +178,7 @@ def main():
         print(f"=> creating model {args.arch}")
     else:
         network_data = None
-        print(f"=> No pretrained weights ")
+        print(f"=> No pretrained weights found")
 
 ## --------------------- setting up the optimizer --------------------- ##
 
@@ -202,33 +204,31 @@ def main():
         Images scaling:  {img_scale} ''')
     
     if args.evaluate:
-        best_MSE = validation(val_loader, model, 0, output_writers, loss_function)
+        avg_val_CCE, best_val_CCE = validation(val_loader, model, 0, output_writers, loss_function)
         return
 
 ## --------------------- Scheduler and Loss Function --------------------- ##
 
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.milestones, gamma=.5)
 
-## --------------------- Training Loop --------------------- ##
-    
+
+## --------------------- Validation Step (always validate first)--------------------- ##
+
     print("=> training go look tensorboard for more stuff")
     for epoch in (r := trange(args.start_epoch, args.epochs)):
+        
+        with torch.no_grad():
+            avg_val_CCE, best_val_CCE, val_display = validation(val_loader, model, epoch+main_epoch)
 
+## --------------------- Training Loop --------------------- ##
+    
         #avg_loss_MSE, train_loss_MSE, display = train(train_loader, model,
-        best_MSE = train(train_loader, model,optimizer, epoch+main_epoch)
+        total_CCE, best_CCE, train_display = train(train_loader, model,optimizer, epoch+main_epoch)
         
         scheduler.step()
 
-## --------------------- Validation Step --------------------- ##
-        
-       # with torch.no_grad():
-       #     MSE_loss_val, display_val = validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss)
-
-       # if best_MSE < 0:
-       #     best_MSE = MSE_loss_val
-
-       # is_best = MSE_loss_val < best_MSE
-       # best_MSE = min(MSE_loss_val, best_MSE)
+        is_best = CCE_val_loss < best_MSE
+        best_CCE = min(CCE_val_loss, best_CCE)
 
 ## --------------------- Saving on every epoch --------------------- ##
 
@@ -236,16 +236,16 @@ def main():
             'epoch': epoch + 1,
             'arch': args.arch,
             'state_dict': model.module.state_dict(),
-            'best_EPE': best_MSE,
+            'best_EPE': best_CCE,
             'div_flow': args.div_flow
         }, save_path)
         
-        #r.set_description(f"train_stuff: {display}, epoch: {epoch+1}, val_Stuff: {display_val}")
+        r.set_description(f"train_stuff: {train_display}, epoch: {epoch+1}, val_Stuff: {display_val}")
 
 ## --------------------- TRAIN function for the training loop --------------------- ##
 
 def train(train_loader, model, optimizer, epoch):
-    global n_iters, args
+    global n_iters, args, global_step
 
     epoch_size = len(train_loader+main_epoch) if args.epoch_size == 0 else min(len(train_loader), args.epoch_size)
 
@@ -269,7 +269,7 @@ def train(train_loader, model, optimizer, epoch):
             p.grad = None
 
         d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(imgs)
-        loss_2, loss = multi_bce_loss(d_not, d_1 ,d_2 ,d_3 ,d_4 ,d_5 ,d_6 ,true_masks)
+        net_loss, loss = multi_bce_loss(d_not, d_1 ,d_2 ,d_3 ,d_4 ,d_5 ,d_6 ,true_masks)
 
         loss.backward()
         optimizer.step()
@@ -277,45 +277,48 @@ def train(train_loader, model, optimizer, epoch):
         end = time.time()
         batch_time = end - start_time
 
-        #global_step += 1
+        global_step += 1
         
 ## --------------------- Stuff to display at output (make this good)--------------------- ##
 
-       # if i % args.print_freq == 0:
-       #     display = (' Epoch: [{0}][{1}/{2}] ; Time {3} ; Avg MSELoss {4} ; yaw_MSE {5} ; pitch_MSE {6}').format(epoch, 
-       #             i, epoch_size, batch_time, sum(losses)/len(losses), yaw_MSE.item(), pitch_MSE.item())
-       #     print(display)
-       # n_iters += 1
-       # if i >= epoch_size:
-       #     break
+        if i % args.print_freq == 0:
+            display = (' Epoch: [{0}][{1}/{2}] ; Time {3} ; Avg Loss {4} ; total_loss {5} ').format(epoch, i, epoch_size, batch_time, net_loss.item(), loss.item())
+        n_iters += 1
+        if i >= epoch_size:
+            break
     
     #return sum(losses)/len(losses), loss.item()
-    return loss.item()
+    return net_loss.item(), loss.item(), display
 
 ## --------------------- Validation (still incompelete) --------------------- ##
 
-def validation(val_loader, model, epoch, output_writers, yaw_loss, pitch_loss):
+def validation(val_loader, model, epoch):
     global args
 
     model.eval()
     
     end = time.time()
-    for i, (input, yaw, pitch) in enumerate(val_loader):
-        input_frame = input_frame.to(device)
-        ground = ground.to(device)
+    for i,batch in enumerate(val_loader):
 
-        d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(inputs_frame)
-        loss_2, loss = multi_bce_loss(d0 ,d1 ,d2 ,d3 ,d4 ,d5 ,d6 ,ground)
+        start_time = time.time()
+        imgs = batch["image"]
+        true_masks = batch["mask"]
+
+        imgs = imgs.to(device=device, dtype=torch.float32)
+        true_masks = true_masks.to(device)
+
+        d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(imgs)
+        loss_2, loss = multi_bce_loss(d_not, d_1 ,d_2 ,d_3 ,d_4 ,d_5 ,d_6 ,true_masks)
 
         end = time.time()
+        batch_time = end - start_time
 
         if i % args.print_freq == 0:
             display_val = ('Test: [{0}/{1}] ; Loss {2}').format(i, len(val_loader), loss.item())
-            print(display_val)
-            print(f"=> Values: Actual yaw: {np.argmax(yaw)} ; Pred yaw: {np.argmax(pred_yaw)} --- Actual pitch : {np.argmax(pitch)} ; Pred pitch : {np.argmax(pred_pitch)}")
 
-    return loss.item(), display_val
+    return loss_2.item(), loss.item(), display_val
         
 if __name__ == "__main__":
+    torch.cuda.memory_summary(device=None, abbreviated=False)
     torch.cuda.empty_cache()
     main()

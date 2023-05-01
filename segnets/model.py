@@ -18,7 +18,6 @@ class Green_block(nn.Module):
 
     def forward(self, x):
 
-        print("asdasdfasfd",x.shape)
         return self.relu_g(self.bn_g(self.conv1_g(x)))
 
 
@@ -56,7 +55,6 @@ class En_De_1(nn.Module):
 
     def forward(self, x):
 
-        print("2st - asdasdfasfd",x.shape)
         hx = x
         hx_in = self.conv_input(hx)
 
@@ -243,7 +241,6 @@ class En_De_4(nn.Module):
 
     def forward(self, x):
 
-        print("3st - asdasdfasfd",x.shape)
         hx_in = self.conv_input(x)
 
         hx_1 = self.conv_1(hx_in)
@@ -342,7 +339,6 @@ class Unet_square(nn.Module):
 
     def forward(self, x):
 
-        print("1st - asdasdfasfd",x.shape)
         hx_1 = self.cube_1(x)
         hx = self.pool_12(hx_1)
 

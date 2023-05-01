@@ -34,8 +34,7 @@ class comma10k_dataset(Dataset):
 
         self.ids = [file for file in os.listdir(imgs_dir)]
 
-        print(len(self.ids))
-        print(f"Creating dataset with {len(self.ids)} example")
+        print(f"=> Creating dataset with {len(self.ids)} example")
         
 
     def __len__(self):
