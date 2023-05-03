@@ -302,6 +302,9 @@ def forward_interpolate(flow):
     flow = np.stack([flow_x, flow_y], axis=0)
     return torch.from_numpy(flow).float()
 
+def effnets():
+    pass
+
 if __name__ == "__main__":
 
 ## ---------------- Displaying the dataset with respective yaw and pitch ---------------- ##
