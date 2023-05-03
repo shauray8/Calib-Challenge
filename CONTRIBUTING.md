@@ -16,6 +16,8 @@ Please note we have a code of conduct, please follow it in all your interactions
 
 ## Code of Conduct
 
+Do as you wish no conducts !
+
 ### Our Pledge
 
 YOLO
