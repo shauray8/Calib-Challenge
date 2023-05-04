@@ -13,4 +13,7 @@ look into these papers and make a working model from these ! train on KITTI data
 https://github.com/ClementPinard/DepthNet
 look at this as a reference 
 
+a better implimentation with code? 
+https://arxiv.org/pdf/1907.01341v3.pdf
+
 
