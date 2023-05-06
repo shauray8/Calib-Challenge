@@ -19,20 +19,35 @@ import argparse
 
 from model import *
 
-imgs_dir = "E:\data\comma10k\comma10k\imgs"
-pretrained_model = "./pretrained/checkpoint.pkl"
+with torch.no_grad():
+    imgs_dir = "E:\data\comma10k\comma10k\imgs"
+    masks_dir = "E:\data\comma10k\comma10k\masks"
+    pretrained_model = "./pretrained/checkpoint.pkl"
 
-ids = [file for file in os.listdir(imgs_dir)]
+    ids = [file for file in os.listdir(imgs_dir)]
 
-model = Unet_square(4,4)
-with open(pretrained_model, 'rb') as pickle_file:
-    network_data = pickle.load(pickle_file)
+    model = Unet_square(4,4)
+    with open(pretrained_model, 'rb') as pickle_file:
+        network_data = pickle.load(pickle_file)
 
-model.load_state_dict(network_data["state_dict"])
-main_epoch = network_data['epoch']
+    model.load_state_dict(network_data["state_dict"])
+    main_epoch = network_data['epoch']
 
-print(ids[0])
+    print(ids[10])
 
-test = np.asarray(Image.open(ids[0]).resize((H//8,W//8)))
-img = model(test)
-print(img.shape)
+    H, W = 1928, 1208
+    img_nd = np.asarray(Image.open("E:\data\comma10k\comma10k\imgs\\"+ids[10]).resize((H//8,W//8)))
+    print(img_nd.shape)
+    while img_nd.shape[2] < 4:
+        img_nd = np.concatenate((img_nd, np.zeros((W//8,H//8,1))), axis=2)
+
+    img_trans = img_nd
+    img_trans = img_trans.reshape(1, img_nd.shape[0],img_nd.shape[1], img_nd.shape[2]).transpose((0,3,1,2))
+    print(img_trans.shape)
+    test = torch.tensor(img_trans, dtype=torch.float32)
+    img = model(test)
+    another = np.array(img[0])
+    img = img[0].permute(0,2,3,1)
+    print(img[0,:,:,:3].shape)
+    plt.imshow(img[0,:,:,0:])
+    plt.show()
