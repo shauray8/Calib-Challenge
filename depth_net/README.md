@@ -15,5 +15,6 @@ look at this as a reference
 
 a better implimentation with code? 
 https://arxiv.org/pdf/1907.01341v3.pdf
+https://github.com/isl-org/MiDaS
 
 
