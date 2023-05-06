@@ -57,7 +57,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('--epoch-size', default=1000, type=int, metavar='N',
                     help='manual epoch size (will match dataset size if set to 0)')
-parser.add_argument('-b', '--batch-size', default=16, type=int,
+parser.add_argument('-b', '--batch-size', default=32, type=int,
                     metavar='N', help='mini-batch size')
 parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
                     metavar='LR', help='initial learning rate')
@@ -90,9 +90,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #device = torch.device("cpu")
 dir_checkpoint = "./pretrained"
 img_scale = 1/16
+global_step = 0
 
-imgs = "E:\data\comma10k\comma10k\imgs"
-masks = "E:\data\comma10k\comma10k\masks"
+imgs = "/content/drive/MyDrive/imgs2"
+masks = "/content/drive/MyDrive/masks2"
 
 ## --------------------- CCE loss for every output layer --------------------- ##
 
@@ -189,7 +190,7 @@ def main():
         cudnn.benchmark = True
 
 
-    global_step = 0
+    
     
     optimizer = torch.optim.Adam(model.parameters(), args.lr, betas=(args.momentum, args.beta), eps=1e-08, weight_decay=0)
 
@@ -227,8 +228,8 @@ def main():
         
         scheduler.step()
 
-        is_best = CCE_val_loss < best_CCE
-        best_CCE = min(CCE_val_loss, best_CCE)
+        is_best = avg_val_CCE < best_CCE
+        best_CCE = min(avg_val_CCE, best_CCE)
 
 ## --------------------- Saving on every epoch --------------------- ##
 
@@ -238,16 +239,16 @@ def main():
             'state_dict': model.module.state_dict(),
             'best_EPE': best_CCE,
             'div_flow': args.div_flow
-        }, save_path)
+        }, is_best, save_path)
         
-        r.set_description(f"train_stuff: {train_display}, epoch: {epoch+1}, val_Stuff: {display_val}")
+        r.set_description(f"train_stuff: {train_display}, epoch: {epoch+1}, val_Stuff: {val_display}")
 
 ## --------------------- TRAIN function for the training loop --------------------- ##
 
 def train(train_loader, model, optimizer, epoch):
     global n_iters, args, global_step
 
-    epoch_size = len(train_loader+main_epoch) if args.epoch_size == 0 else min(len(train_loader), args.epoch_size)
+    epoch_size = len(train_loader) if args.epoch_size == 0 else min(len(train_loader), args.epoch_size)
 
     losses = []
     model.train()

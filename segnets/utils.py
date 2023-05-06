@@ -180,8 +180,6 @@ def save_checkpoint(state, is_best, save_path, filename='checkpoint.pkl'):
     if is_best:
         shutil.copyfile(os.path.join(save_path,filename), os.path.join(save_path,'model_best.pth.tar'))
 
-
-
 if __name__ == "__main__":
 
 ## ---------------- Displaying the dataset with respective yaw and pitch ---------------- ##
