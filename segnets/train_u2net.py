@@ -1,6 +1,4 @@
-#!/usr/bin
 ## -------------------- Imports -------------------- ##
-
 import argparse
 import os
 import time
@@ -21,9 +19,9 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Dataset, random_split
 from torch.utils.tensorboard import SummaryWriter
 
+import model
 from model import *
 from utils import *
-import model
 from snet_model import *
 
 ## -------------------- checking callable functions from FlowNetCorr -------------------- ##
@@ -86,22 +84,21 @@ parser.add_argument('--model', default=Unet_square(4,4), help='which model to us
 
 ## ----------------------- global variables ----------------------- ##
 
-best_MSE = -1
+best_CCE = -1
 n_iters = 0
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #device = torch.device("cpu")
 dir_checkpoint = "./pretrained"
-img_scale = 320
+img_scale = 1/16
 
 imgs = "E:\data\comma10k\comma10k\imgs"
 masks = "E:\data\comma10k\comma10k\masks"
 
-## --------------------- BCE loss for every output layer --------------------- ##
+## --------------------- CCE loss for every output layer --------------------- ##
 
 cce_loss = nn.CrossEntropyLoss(size_average=True)
 
 def multi_bce_loss(d_not, d_1, d_2, d_3, d_4, d_5, d_6, labels_v):
-    ## i should change this to categorical cross entropy loss   
 
     loss_not = cce_loss(d_not, labels_v)
     loss_1 = cce_loss(d_1, labels_v)
@@ -119,7 +116,7 @@ def multi_bce_loss(d_not, d_1, d_2, d_3, d_4, d_5, d_6, labels_v):
 ## --------------------- Main function contains all the imp stuff --------------------- ##
 
 def main():
-    global args, best_MSE
+    global args, best_CCE
     main_epoch = 0
     args = parser.parse_args()
     timestamp = datetime.datetime.now().strftime("%m-%d-%H-%M")
@@ -230,7 +227,7 @@ def main():
         
         scheduler.step()
 
-        is_best = CCE_val_loss < best_MSE
+        is_best = CCE_val_loss < best_CCE
         best_CCE = min(CCE_val_loss, best_CCE)
 
 ## --------------------- Saving on every epoch --------------------- ##
