@@ -54,7 +54,7 @@ parser.add_argument('--arch', '-a', metavar='ARCH', default='Unet_square',
                     choices=callable,)
 parser.add_argument('--solver', default='adam',choices=['adam'],
                     help='solver algorithms')
-parser.add_argument('-j', '--workers', default=2, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers')
 parser.add_argument('--epochs', default=300, type=int, metavar='N',
                     help='number of total epochs to run')
@@ -62,7 +62,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('--epoch-size', default=1000, type=int, metavar='N',
                     help='manual epoch size (will match dataset size if set to 0)')
-parser.add_argument('-b', '--batch-size', default=32, type=int,
+parser.add_argument('-b', '--batch-size', default=64, type=int,
                     metavar='N', help='mini-batch size')
 parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
                     metavar='LR', help='initial learning rate')
@@ -97,8 +97,8 @@ dir_checkpoint = "./pretrained"
 img_scale = 1/16
 global_step = 0
 
-imgs = "/content/drive/MyDrive/imgs2"
-masks = "/content/drive/MyDrive/masks2"
+imgs = "/content/drive/MyDrive/imgs"
+masks = "/content/drive/MyDrive/masks"
 
 ## --------------------- CCE loss for every output layer --------------------- ##
 
@@ -134,7 +134,7 @@ def main():
         os.makedirs(save_path)
 
     train_writer = SummaryWriter(os.path.join(save_path, "train"))
-    validatation_writer = SummaryWriter(os.path.join(save_path, "validate"))
+    validation_writer = SummaryWriter(os.path.join(save_path, "validate"))
     output_writers = []
 
 ## --------------------- transforming the data --------------------- ##
@@ -156,7 +156,7 @@ def main():
 
     print(f"=> fetching image pairs from {args.data}") 
 
-    dataset = comma10k_dataset(imgs_dir = imgs, masks_dir =masks , transform = input_transform)
+    dataset = comma10k_dataset(imgs_dir = imgs, masks_dir =masks , transform = None)
     
     val_set = int(len(dataset) * args.split_value)
     train_set_number = len(dataset) - val_set

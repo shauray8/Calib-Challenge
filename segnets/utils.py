@@ -32,7 +32,7 @@ class comma10k_dataset(Dataset):
 #        self.ids = [os.path.splitext(file)[0].split("_mask")[0] for file in os.listdir(masks_dir)
 #                if not file.startswith('.')]
 
-        self.ids = [file for file in os.listdir(imgs_dir)]
+        self.ids = [file for file in os.listdir(masks_dir)]
 
         print(f"=> Creating dataset with {len(self.ids)} example")
         
@@ -65,10 +65,6 @@ class comma10k_dataset(Dataset):
         self.img_file = glob.glob(self.imgs_dir+ "/" + idx)
         self.mask_file = glob.glob(self.masks_dir+ "/" + idx)
         H, W = 1928, 1208
-
-        if self.transform is not None:
-            inputs[0] = self.transform(inputs[0])
-            inputs[1] = self.transform(inputs[1])
 
         assert len(self.img_file) == 1, \
                 f'Either no image or multiple images found for the ID {idx}: {self.img_file} : {self.mask_file} : {glob.glob(self.imgs_dir+ "/" + idx)}'
