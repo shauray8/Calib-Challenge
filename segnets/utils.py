@@ -66,10 +66,18 @@ class comma10k_dataset(Dataset):
         self.mask_file = glob.glob(self.masks_dir+ "/" + idx)
         H, W = 1928, 1208
 
+        if self.transform is not None:
+            inputs[0] = self.transform(inputs[0])
+            inputs[1] = self.transform(inputs[1])
+
         assert len(self.img_file) == 1, \
                 f'Either no image or multiple images found for the ID {idx}: {self.img_file} : {self.mask_file} : {glob.glob(self.imgs_dir+ "/" + idx)}'
-        img = np.asarray(Image.open(self.img_file[0]).resize((H//16,W//16)))
-        mask = np.asarray(Image.open(self.mask_file[0]).resize((H//16,W//16)))
+        img = Image.open(self.img_file[0]).resize((H//8,W//8))
+        mask = np.asarray(Image.open(self.mask_file[0]).resize((H//8,W//8)))
+        if self.transform is not None:
+            img = self.transform(img)
+
+        img = np.asarray(img)
 
         img = self.preprocess(img, self.scale)
         mask = self.preprocess(mask, self.scale)

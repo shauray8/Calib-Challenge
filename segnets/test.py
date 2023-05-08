@@ -32,12 +32,12 @@ with torch.no_grad():
 
     model.load_state_dict(network_data["state_dict"])
     main_epoch = network_data['epoch']
-
-    print(ids[1])
+    print(main_epoch)
 
     H, W = 1928, 1208
-    img_nd = np.asarray(Image.open("E:\data\comma10k\comma10k\imgs\\"+ids[18]).resize((H//8,W//8)))
-    print(img_nd.shape)
+    img_nd = np.asarray(Image.open("E:\data\comma10k\comma10k\imgs\\"+ids[i]).resize((H//8,W//8)))
+    fig, ax = plt.subplots()
+    ax.imshow(img_nd)
     while img_nd.shape[2] < 4:
         img_nd = np.concatenate((img_nd, np.zeros((W//8,H//8,1))), axis=2)
 
@@ -49,5 +49,7 @@ with torch.no_grad():
     another = np.array(img[0])
     img = img[0].permute(0,2,3,1)
     print(img[0,:,:,:3].shape)
-    plt.imshow(img[0,:,:,0:])
+    img = img[0,:,:,0:]
+    print(img_nd.shape)
+    ax.imshow(img, alpha=.4)
     plt.show()
