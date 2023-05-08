@@ -134,7 +134,7 @@ def main():
         os.makedirs(save_path)
 
     train_writer = SummaryWriter(os.path.join(save_path, "train"))
-    validate_writer = SummaryWriter(os.path.join(save_path, "validate"))
+    validatation_writer = SummaryWriter(os.path.join(save_path, "validate"))
     output_writers = []
 
 ## --------------------- transforming the data --------------------- ##
@@ -144,12 +144,12 @@ def main():
             transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
             transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
             transforms.RandomGrayscale(p=0.1),
-            transforms.RandomPerspective(distortion_scale=.6,p=.1),
+            #transforms.RandomPerspective(distortion_scale=.6,p=.1),
             transforms.RandomAutocontrast(),
-            transforms.RandomHorizontalFlip(p=0.5),
+            #transforms.RandomHorizontalFlip(p=0.5),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
-            transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
+            #transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
+            #transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
         ])
 
 ## --------------------- loading and concatinating the data --------------------- ##
@@ -279,7 +279,7 @@ def train(train_loader, model, optimizer, epoch, train_writer):
         d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(imgs)
         net_loss, loss = multi_bce_loss(d_not, d_1 ,d_2 ,d_3 ,d_4 ,d_5 ,d_6 ,true_masks)
 
-        train_writer.add_scalar('train_loss', (float(net_loss))
+        train_writer.add_scalar('train_loss', net_loss)
         loss.backward()
         optimizer.step()
 
@@ -320,7 +320,7 @@ def validation(val_loader, model, epoch, validate_writer):
         loss_2, loss = multi_bce_loss(d_not, d_1 ,d_2 ,d_3 ,d_4 ,d_5 ,d_6 ,true_masks)
 
 
-        validate_writer.add_scalar('valid_loss', (float(loss_2))
+        validate_writer.add_scalar('valid_loss', loss_2)
 
         end = time.time()
         batch_time = end - start_time
