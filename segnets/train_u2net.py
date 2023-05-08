@@ -24,6 +24,11 @@ from model import *
 from utils import *
 from snet_model import *
 
+torch.backends.cuda.matmul.allow_tf32 = False
+torch.backends.cudnn.benchmark = True
+torch.backends.cudnn.deterministic = False
+torch.backends.cudnn.allow_tf32 = True
+
 ## -------------------- checking callable functions from FlowNetCorr -------------------- ##
 
 def callable():
@@ -110,7 +115,7 @@ def multi_bce_loss(d_not, d_1, d_2, d_3, d_4, d_5, d_6, labels_v):
     loss_6 = cce_loss(d_6, labels_v)
 
     loss = loss_not + loss_1 + loss_2 + loss_3 + loss_4 + loss_5 + loss_6
-    print(f"0: {loss_not.data.item()}, 1: {loss_1.data.item()},2: {loss_2.data.item()},3: {loss_3.data.item()},4: {loss_4.data.item()},5: {loss_5.data.item()},6: {loss_6.data.item()}")
+    #print(f"0: {loss_not.data.item()}, 1: {loss_1.data.item()},2: {loss_2.data.item()},3: {loss_3.data.item()},4: {loss_4.data.item()},5: {loss_5.data.item()},6: {loss_6.data.item()}")
 
     return loss_not, loss
 
@@ -128,6 +133,8 @@ def main():
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
+    train_writer = SummaryWriter(os.path.join(save_path, "train"))
+    validate_writer = SummaryWriter(os.path.join(save_path, "validate"))
     output_writers = []
 
 ## --------------------- transforming the data --------------------- ##
@@ -188,9 +195,6 @@ def main():
     if device.type == 'cuda':
         model = torch.nn.DataParallel(model).cuda()
         cudnn.benchmark = True
-
-
-    
     
     optimizer = torch.optim.Adam(model.parameters(), args.lr, betas=(args.momentum, args.beta), eps=1e-08, weight_decay=0)
 
@@ -219,40 +223,43 @@ def main():
     for epoch in (r := trange(args.start_epoch, args.epochs)):
         
         with torch.no_grad():
-            avg_val_CCE, best_val_CCE, val_display = validation(val_loader, model, epoch+main_epoch)
+            avg_val_CCE, best_val_CCE, val_display = validation(val_loader, model, epoch+main_epoch, validation_writer)
+        validation_writer.add_scalar('valid mean CCE', avg_val_CCE, epoch)
 
 ## --------------------- Training Loop --------------------- ##
     
         #avg_loss_MSE, train_loss_MSE, display = train(train_loader, model,
-        total_CCE, best_CCE, train_display = train(train_loader, model,optimizer, epoch+main_epoch)
+        avg_CCE, total_CCE, train_display = train(train_loader, model,optimizer, epoch+main_epoch, train_writer)
         
         scheduler.step()
+        train_writer.add_scalar('train mean CCE', avg_CCE, epoch)
 
-        is_best = avg_val_CCE < best_CCE
+        is_best = avg_val_CCE < avg_CCE
         best_CCE = min(avg_val_CCE, best_CCE)
 
 ## --------------------- Saving on every epoch --------------------- ##
 
-        save_checkpoint({
-            'epoch': epoch + 1,
-            'arch': args.arch,
-            'state_dict': model.module.state_dict(),
-            'best_EPE': best_CCE,
-            'div_flow': args.div_flow
-        }, is_best, save_path)
+        if epoch % 10:
+            save_checkpoint({
+                'epoch': epoch + 1,
+                'arch': args.arch,
+                'state_dict': model.module.state_dict(),
+                'best_EPE': best_CCE,
+                'div_flow': args.div_flow
+            }, is_best, save_path)
         
         r.set_description(f"train_stuff: {train_display}, epoch: {epoch+1}, val_Stuff: {val_display}")
 
 ## --------------------- TRAIN function for the training loop --------------------- ##
 
-def train(train_loader, model, optimizer, epoch):
+def train(train_loader, model, optimizer, epoch, train_writer):
     global n_iters, args, global_step
 
     epoch_size = len(train_loader) if args.epoch_size == 0 else min(len(train_loader), args.epoch_size)
 
     losses = []
     model.train()
-    end = time.time()
+    start = time.time()
 
 ## --------------------- Training --------------------- ##
 
@@ -272,28 +279,29 @@ def train(train_loader, model, optimizer, epoch):
         d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(imgs)
         net_loss, loss = multi_bce_loss(d_not, d_1 ,d_2 ,d_3 ,d_4 ,d_5 ,d_6 ,true_masks)
 
+        train_writer.add_scalar('train_loss', (float(net_loss))
         loss.backward()
         optimizer.step()
 
-        end = time.time()
-        batch_time = end - start_time
 
         global_step += 1
         
 ## --------------------- Stuff to display at output (make this good)--------------------- ##
-
-        if i % args.print_freq == 0:
-            display = (' Epoch: [{0}][{1}/{2}] ; Time {3} ; Avg Loss {4} ; total_loss {5} ').format(epoch, i, epoch_size, batch_time, net_loss.item(), loss.item())
-        n_iters += 1
         if i >= epoch_size:
             break
+    end = time.time()
+    batch_time = end - start
+
+    display = (' Epoch: [{0}] ; Time {1} ; Avg Loss {2}').format(epoch,batch_time, net_loss.item())
+    n_iters += 1
     
     #return sum(losses)/len(losses), loss.item()
     return net_loss.item(), loss.item(), display
 
+
 ## --------------------- Validation (still incompelete) --------------------- ##
 
-def validation(val_loader, model, epoch):
+def validation(val_loader, model, epoch, validate_writer):
     global args
 
     model.eval()
@@ -311,6 +319,9 @@ def validation(val_loader, model, epoch):
         d_not, d_1, d_2, d_3, d_4, d_5, d_6 = model(imgs)
         loss_2, loss = multi_bce_loss(d_not, d_1 ,d_2 ,d_3 ,d_4 ,d_5 ,d_6 ,true_masks)
 
+
+        validate_writer.add_scalar('valid_loss', (float(loss_2))
+
         end = time.time()
         batch_time = end - start_time
 
@@ -320,4 +331,5 @@ def validation(val_loader, model, epoch):
     return loss_2.item(), loss.item(), display_val
         
 if __name__ == "__main__":
+    torch.cuda.empty_cache()
     main()

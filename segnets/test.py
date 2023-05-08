@@ -22,7 +22,7 @@ from model import *
 with torch.no_grad():
     imgs_dir = "E:\data\comma10k\comma10k\imgs"
     masks_dir = "E:\data\comma10k\comma10k\masks"
-    pretrained_model = "./pretrained/checkpoint.pkl"
+    pretrained_model = "E:\data\comma10k\pretrained/pretraining_on_sample.pkl"
 
     ids = [file for file in os.listdir(imgs_dir)]
 
@@ -33,10 +33,10 @@ with torch.no_grad():
     model.load_state_dict(network_data["state_dict"])
     main_epoch = network_data['epoch']
 
-    print(ids[10])
+    print(ids[1])
 
     H, W = 1928, 1208
-    img_nd = np.asarray(Image.open("E:\data\comma10k\comma10k\imgs\\"+ids[10]).resize((H//8,W//8)))
+    img_nd = np.asarray(Image.open("E:\data\comma10k\comma10k\imgs\\"+ids[18]).resize((H//8,W//8)))
     print(img_nd.shape)
     while img_nd.shape[2] < 4:
         img_nd = np.concatenate((img_nd, np.zeros((W//8,H//8,1))), axis=2)
