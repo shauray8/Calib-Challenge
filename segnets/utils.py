@@ -68,8 +68,8 @@ class comma10k_dataset(Dataset):
 
         assert len(self.img_file) == 1, \
                 f'Either no image or multiple images found for the ID {idx}: {self.img_file} : {self.mask_file} : {glob.glob(self.imgs_dir+ "/" + idx)}'
-        img = Image.open(self.img_file[0]).resize((H//8,W//8))
-        mask = np.asarray(Image.open(self.mask_file[0]).resize((H//8,W//8)))
+        img = Image.open(self.img_file[0]).resize((H//12,W//12))
+        mask = np.asarray(Image.open(self.mask_file[0]).resize((H//12,W//12)))
         if self.transform is not None:
             img = self.transform(img)
 

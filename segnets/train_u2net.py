@@ -54,7 +54,7 @@ parser.add_argument('--arch', '-a', metavar='ARCH', default='Unet_square',
                     choices=callable,)
 parser.add_argument('--solver', default='adam',choices=['adam'],
                     help='solver algorithms')
-parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
                     help='number of data loading workers')
 parser.add_argument('--epochs', default=300, type=int, metavar='N',
                     help='number of total epochs to run')
@@ -239,7 +239,7 @@ def main():
 
 ## --------------------- Saving on every epoch --------------------- ##
 
-        if epoch % 10:
+        if epoch % 3:
             save_checkpoint({
                 'epoch': epoch + 1,
                 'arch': args.arch,
