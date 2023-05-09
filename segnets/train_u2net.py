@@ -94,11 +94,13 @@ n_iters = 0
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #device = torch.device("cpu")
 dir_checkpoint = "./pretrained"
-img_scale = 1/16
+img_scale = 12
 global_step = 0
 
 imgs = "/content/drive/MyDrive/imgs"
 masks = "/content/drive/MyDrive/masks"
+#imgs = "../../data/comma10k/comma10k/imgs"
+#masks = "../../data/comma10k/comma10k/masks"
 
 ## --------------------- CCE loss for every output layer --------------------- ##
 
@@ -128,7 +130,8 @@ def main():
     timestamp = datetime.datetime.now().strftime("%m-%d-%H-%M")
     save_path = f'{args.arch}_{args.solver}_{args.epochs}_bs{args.batch_size}_time{timestamp}_lr{args.lr}'
         
-    save_path = os.path.join("./pretrained/", save_path)
+    #save_path = os.path.join("./pretrained/", save_path) # for local machine
+    save_path = os.path.join("./content/drive/MyDrive/models/", save_path)
     print(f"=> saving everything to {save_path}")
     if not os.path.exists(save_path):
         os.makedirs(save_path)
@@ -140,7 +143,7 @@ def main():
 ## --------------------- transforming the data --------------------- ##
 
     input_transform = transforms.Compose([
-            #transforms.Resize((img_scale)),
+            #transforms.Resize((H//img_scale, W//img_scale)),
             transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
             transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
             transforms.RandomGrayscale(p=0.1),
@@ -149,14 +152,14 @@ def main():
             #transforms.RandomHorizontalFlip(p=0.5),
             transforms.ToTensor(),
             #transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
-            #transforms.Normalize(mean=[.45,.432,.411], std=[1,1,1]),
+            transforms.Normalize(mean=[0,0,.0], std=[1,1,1]),
         ])
 
 ## --------------------- loading and concatinating the data --------------------- ##
 
     print(f"=> fetching image pairs from {args.data}") 
 
-    dataset = comma10k_dataset(imgs_dir = imgs, masks_dir =masks , transform = None)
+    dataset = comma10k_dataset(imgs_dir = imgs, masks_dir =masks , transform = None, scale = img_scale)
     
     val_set = int(len(dataset) * args.split_value)
     train_set_number = len(dataset) - val_set
@@ -239,16 +242,16 @@ def main():
 
 ## --------------------- Saving on every epoch --------------------- ##
 
-        if epoch % 3:
+        if epoch % 3 == 0:
             save_checkpoint({
-                'epoch': epoch + 1,
+                'epoch': epoch,
                 'arch': args.arch,
                 'state_dict': model.module.state_dict(),
                 'best_EPE': best_CCE,
                 'div_flow': args.div_flow
             }, is_best, save_path)
         
-        r.set_description(f"train_stuff: {train_display}, epoch: {epoch+1}, val_Stuff: {val_display}")
+        r.set_description(f"Epoch: {epoch} ; TrainD : {train_display} ; ValidationD : {val_display}")
 
 ## --------------------- TRAIN function for the training loop --------------------- ##
 
@@ -292,7 +295,7 @@ def train(train_loader, model, optimizer, epoch, train_writer):
     end = time.time()
     batch_time = end - start
 
-    display = (' Epoch: [{0}] ; Time {1} ; Avg Loss {2}').format(epoch,batch_time, net_loss.item())
+    display = ('Time {0} ; Avg Loss {1} ; Total Loss {2}').format(batch_time, net_loss.item(), loss.item())
     n_iters += 1
     
     #return sum(losses)/len(losses), loss.item()
@@ -306,7 +309,7 @@ def validation(val_loader, model, epoch, validate_writer):
 
     model.eval()
     
-    end = time.time()
+    start = time.time()
     for i,batch in enumerate(val_loader):
 
         start_time = time.time()
@@ -323,15 +326,14 @@ def validation(val_loader, model, epoch, validate_writer):
         validate_writer.add_scalar('valid_loss', loss_2)
 
         end = time.time()
-        batch_time = end - start_time
+    batch_time = end - start_time
 
-        if i % args.print_freq == 0:
-            display_val = ('Test: [{0}/{1}] ; Loss {2}').format(i, len(val_loader), loss.item())
-       #    mean_values = torch.tensor([0.45,0.432,0.411], dtype=input.dtype).view(3,1,1)
-       #    output_writers[i].add_image('GroundTruth', flow2rgb(args.div_flow * target[0], max_value=10), 0)
-       #    output_writers[i].add_image('Inputs', (input[0,:3].cpu() + mean_values).clamp(0,1), 0)
-       #    output_writers[i].add_image('Inputs', (input[0,3:].cpu() + mean_values).clamp(0,1), 1)
-       #    output_writers[i].add_image('FlowNet Outputs', flow2rgb(args.div_flow * output[0], max_value=10), epoch)
+    display_val = ('Time: {0}; Length of val : {1} ; Avg_Loss {2}, Total Loss : {3}').format(batch_time, len(val_loader), loss_2.item(), loss.item())
+   #    mean_values = torch.tensor([0.45,0.432,0.411], dtype=input.dtype).view(3,1,1)
+   #    output_writers[i].add_image('GroundTruth', flow2rgb(args.div_flow * target[0], max_value=10), 0)
+   #    output_writers[i].add_image('Inputs', (input[0,:3].cpu() + mean_values).clamp(0,1), 0)
+   #    output_writers[i].add_image('Inputs', (input[0,3:].cpu() + mean_values).clamp(0,1), 1)
+   #    output_writers[i].add_image('FlowNet Outputs', flow2rgb(args.div_flow * output[0], max_value=10), epoch)
 
     return loss_2.item(), loss.item(), display_val
         

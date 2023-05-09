@@ -27,8 +27,6 @@ class comma10k_dataset(Dataset):
         self.transform = transform
         self.scale = scale
 
-        assert 0 < scale <= 1, 'scale must be between 0 and 1'
-
 #        self.ids = [os.path.splitext(file)[0].split("_mask")[0] for file in os.listdir(masks_dir)
 #                if not file.startswith('.')]
 
@@ -41,13 +39,13 @@ class comma10k_dataset(Dataset):
         return len(self.ids)
 
     @classmethod
-    def preprocess(cls, pil_image, scale=1):
+    def preprocess(cls, pil_image):
         try:
             w, h, d = pil_image.shape
         except:
             w, h = pil_image.shape
             d = 1
-        newW, newH = int(scale * w), int(scale * h)
+        newW, newH = int(w), int(h)
         img_nd = pil_image.reshape((newW, newH, d))
 
         while img_nd.shape[2] < 4:
@@ -68,15 +66,15 @@ class comma10k_dataset(Dataset):
 
         assert len(self.img_file) == 1, \
                 f'Either no image or multiple images found for the ID {idx}: {self.img_file} : {self.mask_file} : {glob.glob(self.imgs_dir+ "/" + idx)}'
-        img = Image.open(self.img_file[0]).resize((H//12,W//12))
-        mask = np.asarray(Image.open(self.mask_file[0]).resize((H//12,W//12)))
+        img = Image.open(self.img_file[0]).resize((H//self.scale,W//self.scale))
+        mask = np.asarray(Image.open(self.mask_file[0]).resize((H//self.scale,W//self.scale)))
         if self.transform is not None:
             img = self.transform(img)
 
         img = np.asarray(img)
 
-        img = self.preprocess(img, self.scale)
-        mask = self.preprocess(mask, self.scale)
+        img = self.preprocess(img)
+        mask = self.preprocess(mask)
         #print(f"img {img.shape} == mask {mask.shape}")
         
         return {
