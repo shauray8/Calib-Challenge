@@ -131,13 +131,14 @@ def main():
     save_path = f'{args.arch}_{args.solver}_{args.epochs}_bs{args.batch_size}_time{timestamp}_lr{args.lr}'
         
     #save_path = os.path.join("./pretrained/", save_path) # for local machine
-    save_path = os.path.join("./content/drive/MyDrive/models/", save_path)
+    save_path = os.path.join("/content/drive/MyDrive/models/", save_path)
     print(f"=> saving everything to {save_path}")
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
     train_writer = SummaryWriter(os.path.join(save_path, "train"))
     validation_writer = SummaryWriter(os.path.join(save_path, "validate"))
+    lr_writer = SummaryWriter(os.path.join(save_path, "validate"))
     output_writers = []
 
 ## --------------------- transforming the data --------------------- ##
@@ -186,6 +187,7 @@ def main():
 
         model.load_state_dict(network_data["state_dict"])
         main_epoch = network_data['epoch']
+        args.lr = network_data["lr"]
         print(f"=> creating model {args.arch}")
     else:
         network_data = None
@@ -223,7 +225,7 @@ def main():
 ## --------------------- Validation Step (always validate first)--------------------- ##
 
     print("=> training go look tensorboard for more stuff")
-    for epoch in (r := trange(args.start_epoch, args.epochs)):
+    for epoch in (r := trange(args.start_epoch+main_epoch, args.epochs)):
         
         with torch.no_grad():
             avg_val_CCE, best_val_CCE, val_display = validation(val_loader, model, epoch+main_epoch, validation_writer)
@@ -234,6 +236,7 @@ def main():
         #avg_loss_MSE, train_loss_MSE, display = train(train_loader, model,
         avg_CCE, total_CCE, train_display = train(train_loader, model,optimizer, epoch+main_epoch, train_writer)
         
+        lr_writer.add_scalar('LEARNING RATE', args.lr)
         scheduler.step()
         train_writer.add_scalar('train mean CCE', avg_CCE, epoch)
 
@@ -245,13 +248,14 @@ def main():
         if epoch % 3 == 0:
             save_checkpoint({
                 'epoch': epoch,
+                'lr':args.lr,
                 'arch': args.arch,
                 'state_dict': model.module.state_dict(),
                 'best_EPE': best_CCE,
                 'div_flow': args.div_flow
             }, is_best, save_path)
         
-        r.set_description(f"Epoch: {epoch} ; TrainD : {train_display} ; ValidationD : {val_display}")
+        r.set_description(f"Epoch: {epoch} ; TrainD : {train_display} ; ValidationD : {val_display} ; LR : {args.lr}")
 
 ## --------------------- TRAIN function for the training loop --------------------- ##
 

@@ -22,7 +22,7 @@ from model import *
 with torch.no_grad():
     imgs_dir = "E:\data\comma10k\comma10k\imgs"
     masks_dir = "E:\data\comma10k\comma10k\masks"
-    pretrained_model = "E:\data\comma10k\pretrained/pretraining_on_sample.pkl"
+    pretrained_model = "E:\data\comma10k\pretrained\pretraining_on_sample.pkl"
 
     ids = [file for file in os.listdir(imgs_dir)]
 
@@ -35,11 +35,11 @@ with torch.no_grad():
     print(main_epoch)
 
     H, W = 1928, 1208
-    img_nd = np.asarray(Image.open("E:\data\comma10k\comma10k\imgs\\"+ids[i]).resize((H//8,W//8)))
+    img_nd = np.asarray(Image.open("E:\data\comma10k\comma10k\imgs\\"+ids[10]).resize((H//12,W//12)))
     fig, ax = plt.subplots()
     ax.imshow(img_nd)
     while img_nd.shape[2] < 4:
-        img_nd = np.concatenate((img_nd, np.zeros((W//8,H//8,1))), axis=2)
+        img_nd = np.concatenate((img_nd, np.zeros((W//12,H//12,1))), axis=2)
 
     img_trans = img_nd
     img_trans = img_trans.reshape(1, img_nd.shape[0],img_nd.shape[1], img_nd.shape[2]).transpose((0,3,1,2))
