@@ -22,7 +22,7 @@ from model import *
 with torch.no_grad():
     imgs_dir = "E:\data\comma10k\comma10k\imgs"
     masks_dir = "E:\data\comma10k\comma10k\masks"
-    pretrained_model = "E:\data\comma10k\pretrained\pretraining_on_sample.pkl"
+    pretrained_model = "E:\data\comma10k\pretrained\checkpoint.pkl"
 
     ids = [file for file in os.listdir(imgs_dir)]
 
@@ -32,6 +32,8 @@ with torch.no_grad():
 
     model.load_state_dict(network_data["state_dict"])
     main_epoch = network_data['epoch']
+    loss = network_data["best_EPE"]
+    print(loss)
     print(main_epoch)
 
     H, W = 1928, 1208

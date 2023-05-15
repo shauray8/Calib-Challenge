@@ -89,7 +89,7 @@ parser.add_argument('--model', default=Unet_square(4,4), help='which model to us
 
 ## ----------------------- global variables ----------------------- ##
 
-best_CCE = -1
+best_CCE = 100
 n_iters = 0
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #device = torch.device("cpu")
